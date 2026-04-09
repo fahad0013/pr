@@ -1,19 +1,24 @@
 
 
-## Plan: Convert English digits to Bengali on LiveExam page
+## Plan: Add Google Analytics to the website
 
-The question count (`exam.questionCount`) is rendered as a raw number, which shows English digits (80, 67, etc.). Need to convert to Bengali digits (৮০, ৬৭, etc.).
+Add the Google Analytics gtag.js snippet to `index.html`.
 
 ### Changes
 
-**File: `src/pages/LiveExam.tsx`**
+**File: `index.html`**
 
-1. Add a helper function to convert English digits to Bengali:
-   ```ts
-   const toBengali = (n: number) => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[+d]);
-   ```
+Insert the GA script tags at the end of the `<head>` section, just before `</head>`:
 
-2. Update line 171: `{toBengali(exam.questionCount)} প্রশ্ন`
-3. Update line 197: `{toBengali(exam.questionCount)} প্রশ্ন`
-4. Update line 79 (the fallback in `formatDuration`): `${toBengali(minutes)} মিনিট` — so non-standard durations also show Bengali digits.
+```html
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MJQ71SDNW3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MJQ71SDNW3');
+</script>
+```
+
+One file, no other changes needed.
 
