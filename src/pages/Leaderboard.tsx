@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUserBadges, type BadgeType } from "@/hooks/useBadges";
+import { BadgeIcon } from "@/components/BadgeDisplay";
 
 interface LeaderEntry {
   rank: number;
