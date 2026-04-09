@@ -1,4 +1,4 @@
-import { Home, BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn, LogOut } from "lucide-react";
+import { BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { to: "/dashboard", icon: Home, label: "হোম" },
   { to: "/subjects", icon: BookOpen, label: "বিষয়" },
   { to: "/live-exam", icon: Radio, label: "লাইভ পরীক্ষা" },
   { to: "/leaderboard", icon: Trophy, label: "লিডারবোর্ড" },
@@ -90,7 +89,7 @@ export function TopNav() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === "/dashboard"}
+                end={item.to === "/profile"}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",

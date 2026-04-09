@@ -10,7 +10,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { StreakLevelUp } from "@/components/StreakLevelUp";
 import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
-import Index from "./pages/Index";
+// Index removed — dashboard merged into Profile
 import Subjects from "./pages/Subjects";
 import LiveExam from "./pages/LiveExam";
 import Leaderboard from "./pages/Leaderboard";
@@ -80,7 +80,6 @@ const App = () => (
             <Route path="/exam/:examId" element={<ExamRoom />} />
             <Route path="/exam-result" element={<ExamResult />} />
             <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Index />} />
               <Route path="/subjects" element={<Subjects />} />
               <Route path="/live-exam" element={<LiveExam />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
