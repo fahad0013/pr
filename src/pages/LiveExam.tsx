@@ -10,6 +10,8 @@ import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 
+const toBengali = (n: number | string) => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[+d]);
+
 interface TestInfo {
   id: number;
   title: string;
@@ -76,7 +78,7 @@ export default function LiveExam() {
     if (!minutes) return "১ ঘণ্টা";
     if (minutes === 60) return "১ ঘণ্টা";
     if (minutes === 80) return "১ ঘণ্টা ২০ মিনিট";
-    return `${minutes} মিনিট`;
+    return `${toBengali(minutes)} মিনিট`;
   };
 
   if (loading) {
@@ -168,7 +170,7 @@ export default function LiveExam() {
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" /> {formatDuration(exam.duration_minutes)}
                       </span>
-                      <span>{exam.questionCount} প্রশ্ন</span>
+                      <span>{toBengali(exam.questionCount)} প্রশ্ন</span>
                     </div>
                     <Button
                       className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[44px]"
@@ -194,7 +196,7 @@ export default function LiveExam() {
                         <Clock className="h-3.5 w-3.5" /> {formatDuration(exam.duration_minutes)}
                       </span>
                       <span className="w-px h-3 bg-border" />
-                      <span>{exam.questionCount} প্রশ্ন</span>
+                      <span>{toBengali(exam.questionCount)} প্রশ্ন</span>
                     </div>
                     <Button
                       className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[44px]"
