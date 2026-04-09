@@ -221,7 +221,7 @@ export default function ExamRoom() {
               mistakeInserts.push({
                 user_id: user.id,
                 question_id: q.id,
-                test_id: examId || "bcs-mock-07",
+                test_id: examId || "primary-mock-01",
                 subject: q.subject,
                 question_text: q.text,
                 correct_answer: q.options[q.correctIndex],
