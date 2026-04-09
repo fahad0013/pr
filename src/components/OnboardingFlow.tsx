@@ -76,7 +76,7 @@ export function OnboardingFlow({ open, onComplete }: OnboardingFlowProps) {
       ? ["bangla", "english", "math", "gk"]
       : subjects;
 
-    await supabase.from("profiles").update({
+    await (supabase.from("profiles") as any).update({
       display_name: displayName.trim(),
       subject_interest: selectedSubjects,
       role,
@@ -84,7 +84,7 @@ export function OnboardingFlow({ open, onComplete }: OnboardingFlowProps) {
       district: district || null,
       daily_goal_minutes: dailyGoal,
       onboarding_completed: true,
-    }).eq("user_id", user.id);
+    }).eq("id", user.id);
 
     setSaving(false);
     onComplete();

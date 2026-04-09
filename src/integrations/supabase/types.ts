@@ -16,24 +16,36 @@ export type Database = {
     Tables: {
       mistakes: {
         Row: {
+          correct_answer: string | null
           created_at: string | null
           id: number
           question_id: number | null
+          question_text: string | null
+          subject: string | null
           test_id: number | null
+          user_answer: string | null
           user_id: string | null
         }
         Insert: {
+          correct_answer?: string | null
           created_at?: string | null
           id?: number
           question_id?: number | null
+          question_text?: string | null
+          subject?: string | null
           test_id?: number | null
+          user_answer?: string | null
           user_id?: string | null
         }
         Update: {
+          correct_answer?: string | null
           created_at?: string | null
           id?: number
           question_id?: number | null
+          question_text?: string | null
+          subject?: string | null
           test_id?: number | null
+          user_answer?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -70,8 +82,9 @@ export type Database = {
           id: string
           institution: string | null
           last_activity_date: string | null
+          onboarding_completed: boolean | null
           role: string | null
-          subject_interest: string | null
+          subject_interest: string[] | null
         }
         Insert: {
           avatar_url?: string | null
@@ -82,8 +95,9 @@ export type Database = {
           id: string
           institution?: string | null
           last_activity_date?: string | null
+          onboarding_completed?: boolean | null
           role?: string | null
-          subject_interest?: string | null
+          subject_interest?: string[] | null
         }
         Update: {
           avatar_url?: string | null
@@ -94,8 +108,9 @@ export type Database = {
           id?: string
           institution?: string | null
           last_activity_date?: string | null
+          onboarding_completed?: boolean | null
           role?: string | null
-          subject_interest?: string | null
+          subject_interest?: string[] | null
         }
         Relationships: []
       }
@@ -107,6 +122,7 @@ export type Database = {
           id: number
           options: Json
           question_text: string
+          subject: string | null
           test_id: number | null
         }
         Insert: {
@@ -116,6 +132,7 @@ export type Database = {
           id?: number
           options: Json
           question_text: string
+          subject?: string | null
           test_id?: number | null
         }
         Update: {
@@ -125,6 +142,7 @@ export type Database = {
           id?: number
           options?: Json
           question_text?: string
+          subject?: string | null
           test_id?: number | null
         }
         Relationships: [

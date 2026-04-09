@@ -11,9 +11,9 @@ import { BookX, RotateCcw, Loader2, Trash2, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MistakeRow {
-  id: string;
-  question_id: string;
-  test_id: string;
+  id: number;
+  question_id: number;
+  test_id: number;
   subject: string | null;
   question_text: string | null;
   correct_answer: string | null;
@@ -59,11 +59,11 @@ export default function ErrorBank() {
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    setMistakes(data || []);
+    setMistakes((data || []) as MistakeRow[]);
     setLoading(false);
   };
 
-  const deleteMistake = async (id: string) => {
+  const deleteMistake = async (id: number) => {
     await supabase.from("mistakes").delete().eq("id", id);
     setMistakes((prev) => prev.filter((m) => m.id !== id));
   };

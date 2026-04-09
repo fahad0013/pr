@@ -108,12 +108,12 @@ export default function ExamRoom() {
         .in("id", questionIds);
 
       if (data) {
-        const qs: Question[] = data.map((q) => ({
-          id: q.id,
-          text: q.text,
+        const qs: Question[] = (data as any[]).map((q: any) => ({
+          id: String(q.id),
+          text: q.question_text,
           options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
-          correctIndex: q.correct_index,
-          subject: q.subject,
+          correctIndex: q.options.indexOf(q.correct_answer),
+          subject: q.subject || q.category || "",
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
@@ -125,21 +125,21 @@ export default function ExamRoom() {
       let query = supabase
         .from("questions")
         .select("*")
-        .eq("test_id", testId);
+        .eq("test_id", testId as any);
 
       if (subjectFilter) {
-        query = query.eq("subject", subjectFilter);
+        query = query.eq("subject", subjectFilter as any);
       }
 
       const { data } = await query;
 
       if (data && data.length > 0) {
-        const qs: Question[] = data.map((q) => ({
-          id: q.id,
-          text: q.text,
+        const qs: Question[] = (data as any[]).map((q: any) => ({
+          id: String(q.id),
+          text: q.question_text,
           options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
-          correctIndex: q.correct_index,
-          subject: q.subject,
+          correctIndex: q.options.indexOf(q.correct_answer),
+          subject: q.subject || q.category || "",
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
@@ -206,15 +206,7 @@ export default function ExamRoom() {
 
     if (user) {
       // Save mistakes (wrong answers) to DB
-      const mistakeInserts: Array<{
-        user_id: string;
-        question_id: string;
-        test_id: string;
-        subject: string;
-        question_text: string;
-        correct_answer: string;
-        user_answer: string;
-      }> = [];
+      const mistakeInserts: any[] = [];
 
       // For revision mode: delete correctly answered mistakes
       const correctQuestionIds: string[] = [];
@@ -223,17 +215,15 @@ export default function ExamRoom() {
         const a = answers[i];
         if (a.selected !== null) {
           if (a.selected === q.correctIndex) {
-            // Correct answer — if revision, remove from mistakes
             if (isRevision) {
               correctQuestionIds.push(q.id);
             }
           } else {
-            // Wrong answer — save as mistake (only for non-revision to avoid duplicates)
             if (!isRevision) {
               mistakeInserts.push({
                 user_id: user.id,
-                question_id: q.id,
-                test_id: examId || "primary-mock-01",
+                question_id: Number(q.id),
+                test_id: Number(examId) || 1,
                 subject: q.subject,
                 question_text: q.text,
                 correct_answer: q.options[q.correctIndex],
@@ -246,7 +236,7 @@ export default function ExamRoom() {
 
       // Insert new mistakes
       if (mistakeInserts.length > 0) {
-        await supabase.from("mistakes").insert(mistakeInserts);
+        await supabase.from("mistakes").insert(mistakeInserts as any);
       }
 
       // Delete corrected mistakes in revision mode
@@ -255,7 +245,7 @@ export default function ExamRoom() {
           .from("mistakes")
           .delete()
           .eq("user_id", user.id)
-          .in("question_id", correctQuestionIds);
+          .in("question_id", correctQuestionIds.map(Number));
       }
     }
 

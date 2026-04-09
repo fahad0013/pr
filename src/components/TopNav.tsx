@@ -40,7 +40,7 @@ export function TopNav() {
       const { data } = await supabase
         .from("profiles")
         .select("avatar_url, display_name")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
       if (data) {
         setProfileAvatar(data.avatar_url || user.user_metadata?.avatar_url || null);
@@ -52,7 +52,7 @@ export function TopNav() {
     // Listen for profile changes
     const channel = supabase
       .channel("profile-changes")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` }, (payload) => {
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, (payload) => {
         const p = payload.new as any;
         setProfileAvatar(p.avatar_url || null);
         setProfileName(p.display_name || null);

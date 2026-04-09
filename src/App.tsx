@@ -35,9 +35,9 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
     supabase
       .from("profiles")
       .select("onboarding_completed")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (data && !data.onboarding_completed) {
           setShowOnboarding(true);
         }

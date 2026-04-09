@@ -50,7 +50,7 @@ export default function Subjects() {
     const { data: questions } = await supabase
       .from("questions")
       .select("id, subject")
-      .eq("test_id", "primary-mock-01");
+      .eq("test_id", 1 as any);
 
     if (!questions) {
       setLoading(false);
@@ -58,10 +58,11 @@ export default function Subjects() {
     }
 
     // Group by subject
-    const grouped: Record<string, string[]> = {};
-    questions.forEach((q) => {
-      if (!grouped[q.subject]) grouped[q.subject] = [];
-      grouped[q.subject].push(q.id);
+    const grouped: Record<string, number[]> = {};
+    (questions as any[]).forEach((q: any) => {
+      const subj = q.subject || q.category || "অন্যান্য";
+      if (!grouped[subj]) grouped[subj] = [];
+      grouped[subj].push(q.id);
     });
 
     // Get user's results to calculate attempted count

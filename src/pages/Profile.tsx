@@ -110,7 +110,7 @@ export default function Profile() {
     supabase
       .from("profiles")
       .select("display_name, avatar_url")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data) {
@@ -135,7 +135,7 @@ export default function Profile() {
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const newUrl = `${publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").update({ avatar_url: newUrl }).eq("user_id", user.id);
+      await supabase.from("profiles").update({ avatar_url: newUrl }).eq("id", user.id);
       setAvatarUrl(newUrl);
       toast.success("প্রোফাইল ছবি আপডেট হয়েছে!");
     } catch (err: any) {
@@ -148,7 +148,7 @@ export default function Profile() {
 
   const handleNameSave = async () => {
     if (!user || !displayName.trim()) return;
-    const { error } = await supabase.from("profiles").update({ display_name: displayName.trim() }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ display_name: displayName.trim() }).eq("id", user.id);
     if (error) toast.error("নাম আপডেট ব্যর্থ হয়েছে");
     else toast.success("নাম আপডেট হয়েছে!");
     setEditingName(false);
