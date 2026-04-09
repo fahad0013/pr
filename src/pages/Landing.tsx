@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { ArrowRight, BookOpen, Target, BarChart3, Trophy, Users, CheckCircle, Flame, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 const features = [
   {
@@ -45,8 +48,21 @@ const trustPoints = [
 ];
 
 export default function Landing() {
+  const [authOpen, setAuthOpen] = useState(false);
+  const { user } = useAuth();
+
+  const handleStartTest = () => {
+    if (user) {
+      window.location.href = "/";
+    } else {
+      setAuthOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 dark:from-primary/5 dark:via-secondary/10 dark:to-accent/5" />
@@ -65,15 +81,14 @@ export default function Landing() {
               Practice · Analyze · Improve · Compete
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/">
-                <Button
-                  size="lg"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-8 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
-                >
-                  Start Free Mock Test
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-8 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
+                onClick={handleStartTest}
+              >
+                Start Free Mock Test
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
               <Link to="/subjects">
                 <Button
                   variant="outline"
@@ -194,26 +209,26 @@ export default function Landing() {
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             হাজারো শিক্ষার্থী ইতোমধ্যে প্রস্তুতি নিচ্ছে। আপনিও শুরু করুন — সম্পূর্ণ বিনামূল্যে!
           </p>
-          <Link to="/">
-            <Button
-              size="lg"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-10 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
-            >
-              Start Free Mock Test
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-10 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
+            onClick={handleStartTest}
+          >
+            Start Free Mock Test
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </section>
 
       {/* Sticky CTA (mobile) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-background/80 backdrop-blur-lg border-t border-border/50 md:hidden">
-        <Link to="/" className="block">
-          <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[48px] text-base shadow-lg">
-            Start Free Mock Test
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </Link>
+        <Button
+          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[48px] text-base shadow-lg"
+          onClick={handleStartTest}
+        >
+          Start Free Mock Test
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
       </div>
 
       {/* Bottom spacer for sticky CTA on mobile */}
