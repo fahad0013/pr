@@ -12,6 +12,8 @@ import {
   ArrowRight,
   RotateCcw,
   Home,
+  Moon,
+  Sun,
   ChevronDown,
   Lightbulb,
   Star,
