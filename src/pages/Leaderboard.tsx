@@ -277,7 +277,7 @@ export default function Leaderboard() {
                         {u.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-xs font-semibold leading-tight">{u.name}</p>
+                    <p className="text-xs font-semibold leading-tight">{u.name}<BadgeIcon type={userBadges[u.userId]} /></p>
                     {u.district && <p className="text-[10px] text-muted-foreground">{u.district}</p>}
                     <p className="mt-1 text-lg font-bold text-primary">{u.score}</p>
                   </CardContent>
