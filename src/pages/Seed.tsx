@@ -45,11 +45,36 @@ export default function Seed() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const selected = Array.from(e.target.files);
+    setFiles(selected);
+
+    // Parse and validate files immediately
+    const parsed: ParsedFile[] = [];
+    for (const file of selected) {
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data) || data.length === 0) {
+          parsed.push({ file, questions: [], categoryBreakdown: {}, missingCategory: true });
+          continue;
+        }
+        const missingCategory = data.some((q: any) => !q.category);
+        const categoryBreakdown: Record<string, number> = {};
+        data.forEach((q: any) => {
+          const cat = q.category || "(খালি)";
+          categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
+        });
+        parsed.push({ file, questions: data, categoryBreakdown, missingCategory });
+      } catch {
+        parsed.push({ file, questions: [], categoryBreakdown: {}, missingCategory: true });
+      }
     }
+    setParsedFiles(parsed);
   };
+
+  const hasValidationErrors = parsedFiles.some((p) => p.missingCategory || p.questions.length === 0);
 
   const seedFiles = async () => {
     if (!user) {
