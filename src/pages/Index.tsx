@@ -42,15 +42,13 @@ const userData = {
 };
 
 const lastTest = {
-  name: "BCS প্রিলি মক টেস্ট — ০৬",
+  name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
   progress: 60,
   questionsLeft: 16,
 };
 
 const newTests = [
-  { id: "1", name: "বাংলা সাহিত্য — সেট ১২", subject: "📚", questions: 30 },
-  { id: "2", name: "English Grammar — Set 08", subject: "🔤", questions: 25 },
-  { id: "3", name: "সাধারণ গণিত — সেট ০৫", subject: "🔢", questions: 30 },
+  { id: "primary-mock-01", name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১", subject: "🏫", questions: 80 },
 ];
 
 const leaderboard = [
