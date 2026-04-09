@@ -139,7 +139,7 @@ export default function Profile() {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/landing");
+    navigate("/");
   };
 
   return (
