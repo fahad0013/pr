@@ -11,6 +11,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { useBadges } from "@/hooks/useBadges";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
+import { BadgeCelebration } from "@/components/BadgeCelebration";
 
 const menuItems = [
   { icon: Bell, label: "নোটিফিকেশন", chevron: true },
