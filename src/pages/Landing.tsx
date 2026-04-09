@@ -16,6 +16,10 @@ import {
   Moon,
   Sun,
   LogIn,
+  PlayCircle,
+  AlertCircle,
+  TrendingUp,
+  LayoutDashboard
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,58 +29,41 @@ import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const features = [
   {
     icon: BookOpen,
-    title: "মক টেস্ট",
+    title: "পরীক্ষার ভীতি দূর করুন",
     titleEn: "Mock Tests",
     description:
-      "BCS প্রিলি ও অন্যান্য পরীক্ষার মডেল টেস্ট দিন এবং নিজেকে যাচাই করুন।",
+      "বাস্তব পরীক্ষার সিমুলেশনের মাধ্যমে মক টেস্ট দিন এবং পরীক্ষার ভীতি দূর করে আত্মবিশ্বাস বাড়ান।",
   },
   {
     icon: Target,
-    title: "বিষয়ভিত্তিক অনুশীলন",
+    title: "দুর্বল বিষয়গুলো চিহ্নিত করুন",
     titleEn: "Subject Practice",
     description:
-      "বাংলা, ইংরেজি, গণিত, সাধারণ জ্ঞান — প্রতিটি বিষয় আলাদাভাবে প্র্যাকটিস করুন।",
+      "বিষয়ভিত্তিক অনুশীলনের মাধ্যমে আপনার নির্দিষ্ট দুর্বল বিষয়গুলো খুঁজে বের করে প্রস্তুতি আরও শাণিত করুন।",
   },
   {
     icon: BarChart3,
-    title: "ভুল ট্র্যাকার",
+    title: "ভুল থেকে শিখুন",
     titleEn: "Mistake Tracker",
     description:
-      "কোথায় ভুল হচ্ছে তা বিশ্লেষণ করুন এবং দুর্বলতা কাটিয়ে উঠুন।",
+      "কোথায় ভুল হচ্ছে তা বিস্তারিত এনালাইসিস করে একই ভুলের পুনরাবৃত্তি রোধ করুন।",
   },
   {
     icon: Trophy,
-    title: "লিডারবোর্ড",
+    title: "নিজের অবস্থান জানুন",
     titleEn: "Leaderboard",
     description:
-      "হাজারো শিক্ষার্থীর সাথে প্রতিযোগিতা করুন এবং নিজের অবস্থান দেখুন।",
-  },
-];
-
-const benefits = [
-  {
-    icon: Zap,
-    title: "দ্রুত প্রস্তুতি",
-    description: "প্রতিটি টেস্ট শেষে তাৎক্ষণিক ফলাফল ও বিশ্লেষণ পান।",
-  },
-  {
-    icon: Shield,
-    title: "নির্ভুল প্রশ্নব্যাংক",
-    description: "বিগত পরীক্ষার প্রশ্ন ও বিশেষজ্ঞ-প্রণীত MCQ।",
-  },
-  {
-    icon: Clock,
-    title: "সময় ব্যবস্থাপনা",
-    description: "প্রকৃত পরীক্ষার মতো টাইমার ও প্রেশার সিমুলেশন।",
-  },
-  {
-    icon: Star,
-    title: "গ্যামিফিকেশন",
-    description: "XP, স্ট্রিক, লেভেল আপ — প্রতিদিন অনুশীলনের অনুপ্রেরণা।",
+      "হাজারো প্রতিযোগীর মাঝে আপনি কোথায় আছেন তা লিডারবোর্ডের মাধ্যমে জেনে নিন।",
   },
 ];
 
@@ -99,6 +86,25 @@ const testimonials = [
     text: "লিডারবোর্ড দেখে প্রতিযোগিতামূলক মনোভাব তৈরি হয় — প্র্যাকটিস বাড়ে!",
     avatar: "সা",
   },
+];
+
+const faqs = [
+  {
+    question: "অ্যাপটি কি একদম ফ্রি?",
+    answer: "হ্যাঁ, আমাদের প্ল্যাটফর্মের বেসিক মক টেস্ট এবং ট্র্যাকিং ফিচারগুলো সম্পূর্ণ ফ্রি।"
+  },
+  {
+    question: "কারা এটি ব্যবহার করতে পারবে?",
+    answer: "যেকোনো সরকারি চাকরি, বিসিএস, ব্যাংক বা প্রাথমিক শিক্ষক নিয়োগ পরীক্ষার্থীরা আমাদের প্ল্যাটফর্ম ব্যবহার করতে পারবেন।"
+  },
+  {
+    question: "প্রশ্নগুলো কতটা রিলায়েবল?",
+    answer: "আমাদের প্রশ্নব্যাংক বিশেষজ্ঞ মডারেটরদের দ্বারা যাচাইকৃত এবং বিগত সালের প্রশ্নের আলোকে তৈরি।"
+  },
+  {
+    question: "আমি কি মোবাইলে পরীক্ষা দিতে পারব?",
+    answer: "অবশ্যই! আমাদের ওয়েবসাইটটি সম্পূর্ণ মোবাইল-ফ্রেন্ডলি হওয়ায় যেকোনো ডিভাইস থেকে সহজে পরীক্ষা দেওয়া যায়।"
+  }
 ];
 
 export default function Landing() {
@@ -175,6 +181,11 @@ export default function Landing() {
     setAuthOpen(true);
   };
 
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const rankEmoji = (rank: number) => {
     if (rank === 1) return "🥇";
     if (rank === 2) return "🥈";
@@ -212,243 +223,324 @@ export default function Landing() {
       </div>
 
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-20 pb-16 md:pt-32 md:pb-24">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 dark:from-primary/5 dark:via-secondary/10 dark:to-accent/5" />
-        <div className="relative container max-w-5xl px-4 py-20 md:py-32 text-center">
-          <div className="animate-fade-in">
+        <div className="relative container max-w-6xl px-4 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="text-center lg:text-left animate-fade-in">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-6">
               <Flame className="h-4 w-4" />
-              বাংলাদেশের #১ চাকরি প্রস্তুতি প্ল্যাটফর্ম
+              টেস্ট দিন, বিশ্লেষণ করুন, এগিয়ে থাকুন
             </div>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground mb-4">
-              আপনার সরকারি চাকরির{" "}
-              <span className="text-primary">প্রস্তুতি</span> শুরু করুন আজই
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground mb-6">
+              চাকরি প্রস্তুতিতে আপনি কতটা <span className="text-primary">এগিয়ে?</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              মক টেস্ট দিন · বিশ্লেষণ করুন · উন্নতি করুন · প্রতিযোগিতা করুন
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto lg:mx-0">
+              হাজারো শিক্ষার্থীদের সাথে আজই ফ্রি মক টেস্ট দিয়ে নিজের অবস্থান যাচাই করুন এবং দুর্বলতা কাটিয়ে তুলুন।
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Button
                 size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-8 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
+                className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[56px] text-base px-8 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
                 onClick={handleCTA}
               >
-                Start Free Mock Test
+                Free Mock Test দিন এখনই
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="min-h-[52px] text-base px-8"
-                onClick={handleCTA}
+                className="w-full sm:w-auto min-h-[56px] text-base px-8 bg-background/50 backdrop-blur-sm"
+                onClick={() => scrollToSection('how-it-works')}
               >
-                Join Now — বিনামূল্যে!
+                কীভাবে কাজ করে দেখুন <PlayCircle className="ml-2 h-5 w-5 opacity-70" />
               </Button>
             </div>
+            
+            <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> সম্পূর্ণ ফ্রি</span>
+              <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> রিয়েল-টাইম লিডারবোর্ড</span>
+              <span className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> এনালাইটিক্স সুবিধা</span>
+            </div>
+          </div>
+          
+          <div className="relative mx-auto w-full max-w-md lg:max-w-none animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-20 blur-3xl rounded-full" />
+            <div className="relative bg-card border border-border/50 rounded-2xl shadow-2xl p-6 overflow-hidden">
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center">
+                    <UserIcon />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Dashboard Overview</h3>
+                    <p className="text-xs text-muted-foreground">Your Performance</p>
+                  </div>
+                </div>
+                <div className="h-8 w-24 bg-accent/20 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-semibold text-accent-foreground">Score: 82%</span>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
+                
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <TrendingUp className="h-6 w-6 text-primary mb-2" />
+                    <p className="text-xs text-muted-foreground">Accuracy</p>
+                    <p className="text-xl font-bold">+15%</p>
+                  </div>
+                  <div className="p-4 bg-accent/5 rounded-xl border border-accent/10">
+                    <Trophy className="h-6 w-6 text-accent mb-2" />
+                    <p className="text-xs text-muted-foreground">Global Rank</p>
+                    <p className="text-xl font-bold">#42</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Problem-Solution Section ── */}
+      <section className="py-16 bg-muted/30">
+        <div className="container max-w-5xl px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">প্রস্তুতি নিয়ে আপনিও কি চিন্তিত?</h2>
+            <div className="h-1 w-20 bg-primary mx-auto rounded-full" />
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <Card className="bg-destructive/5 border-destructive/20 card-shadow">
+              <CardContent className="p-6 text-center">
+                <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2">প্রস্তুতির সঠিক গাইডলাইন নেই?</h3>
+                <p className="text-sm text-muted-foreground">বই তো অনেক পড়ছেন, কিন্তু আপনার প্রস্তুতি আসলেই কতটা কার্যকর তা বুঝতে পারছেন না।</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-destructive/5 border-destructive/20 card-shadow">
+              <CardContent className="p-6 text-center">
+                <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2">কোথায় ভুল হচ্ছে জানেন না?</h3>
+                <p className="text-sm text-muted-foreground">বারবার একই ভুল করে নম্বর হারাচ্ছেন, দুর্বল জায়গাগুলো চিহ্নিত করতে পারছেন না।</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-destructive/5 border-destructive/20 card-shadow">
+              <CardContent className="p-6 text-center">
+                <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                <h3 className="font-semibold text-lg mb-2">প্রতিযোগিতায় পিছিয়ে পড়ছেন?</h3>
+                <p className="text-sm text-muted-foreground">অন্যান্য হাজারো প্রতিযোগীর তুলনায় আপনার অবস্থা কোথায় তা জানার কোনো উপায় নেই।</p>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Trust badges */}
-          <div
-            className="mt-12 flex flex-wrap items-center justify-center gap-4 md:gap-8 animate-fade-in"
-            style={{ animationDelay: "0.2s" }}
-          >
-            {[
-              `${studentCount > 0 ? studentCount.toLocaleString() : "১০,০০০"}+ শিক্ষার্থী`,
-              "৫০০+ মক টেস্ট প্রশ্ন",
-              "১০০% ফ্রি",
-            ].map((point) => (
-              <div
-                key={point}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
+          <div className="bg-card border border-border shadow-lg rounded-2xl p-8 text-center relative overflow-hidden">
+            <div className="absolute pointer-events-none inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10" />
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold mb-4 text-foreground">প্রস্তুতি অ্যাপ দিয়ে আজই আপনার দুর্বলতা কাটিয়ে উঠুন!</h3>
+              <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">আমাদের সিস্টেমে রেগুলার টেস্ট দিয়ে আপনি শুধু ভুলগুলোই ধরতে পারবেন না, পারবেন ধাপে ধাপে নিজের স্কোরে উন্নতি আনতে।</p>
+              <Button size="lg" className="hover-scale shadow-md" onClick={handleCTA}>সমস্যাগুলো সমাধান করুন</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works Section ── */}
+      <section id="how-it-works" className="py-20">
+        <div className="container max-w-5xl px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-foreground mb-4">কীভাবে কাজ করে?</h2>
+            <p className="text-muted-foreground">৩টি সহজ ধাপে আপনার প্রস্তুতি শুরু করুন</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-border -translate-y-1/2 z-0" />
+            
+            <div className="relative z-10 text-center">
+              <div className="w-16 h-16 mx-auto bg-card border-2 border-primary text-primary rounded-full flex items-center justify-center text-2xl font-bold mb-6 shadow-lg">১</div>
+              <h3 className="text-xl font-bold mb-3">লগইন করুন</h3>
+              <p className="text-muted-foreground text-sm">সহজেই ইমেইল দিয়ে একটি ফ্রি একাউন্ট তৈরি করুন এবং ড্যাশবোর্ডে প্রবেশ করুন।</p>
+            </div>
+            
+            <div className="relative z-10 text-center">
+              <div className="w-16 h-16 mx-auto bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold mb-6 shadow-lg shadow-primary/30">২</div>
+              <h3 className="text-xl font-bold mb-3">মক টেস্ট দিন</h3>
+              <p className="text-muted-foreground text-sm">বিষয়ভিত্তিক বা সম্পূর্ণ মডেল টেস্ট দিয়ে রিয়েল-টাইম পরীক্ষার অভিজ্ঞতা নিন।</p>
+            </div>
+            
+            <div className="relative z-10 text-center">
+              <div className="w-16 h-16 mx-auto bg-card border-2 border-accent text-accent rounded-full flex items-center justify-center text-2xl font-bold mb-6 shadow-lg">৩</div>
+              <h3 className="text-xl font-bold mb-3">উন্নতি করুন</h3>
+              <p className="text-muted-foreground text-sm">বিস্তারিত রিপোর্ট দেখে নিজের ভুল থেকে শিখুন এবং লিডারবোর্ডে এগিয়ে থাকুন।</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features & Benefits Section ── */}
+      <section id="features" className="py-20 bg-secondary/5">
+        <div className="container max-w-5xl px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-foreground mb-4">কেন আমাদের প্ল্যাটফর্ম সেরা?</h2>
+            <p className="text-muted-foreground">আপনার সাফল্যের পথ সহজ করতে আমরা দিচ্ছি</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
+            {features.map((feature, i) => (
+              <Card
+                key={feature.titleEn}
+                className="group card-shadow hover-scale cursor-default border-border/50 bg-card overflow-hidden"
               >
-                <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                <span>{point}</span>
-              </div>
+                <div className="flex h-full flex-col md:flex-row">
+                  <div className="p-6 md:pr-0 self-start md:self-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                      <feature.icon className="h-7 w-7" />
+                    </div>
+                  </div>
+                  <CardContent className="p-6 pt-2 md:pt-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-base text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </div>
+              </Card>
             ))}
           </div>
+          <div className="text-center mt-12">
+            <Button size="lg" className="shadow-lg hover-scale" onClick={handleCTA}>সব ফিচার ব্যবহার করে দেখুন</Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Psychological Trigger Section (Urgency / FOMO) ── */}
+      <section className="py-16 md:py-24 bg-primary text-primary-foreground relative overflow-hidden">
+        {/* Background Patterns */}
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent hidden md:block" />
+        
+        <div className="container max-w-4xl px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">
+            সঠিক অনুশীলনের অভাবে ৮০% পরীক্ষার্থী পিছিয়ে পড়ে!
+          </h2>
+          <p className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto">
+            শুধু পড়ালেই হবে না, পরীক্ষার হলে টাইম ম্যানেজমেন্ট ও সঠিক উত্তর নির্বাচনের স্কিল যাচাই করতে এখনই মক টেস্ট দিন। আপনার প্রতিযোগী হয়তো এখনই টেস্ট দিচ্ছে, আপনি পিছিয়ে থাকবেন কেন?
+          </p>
+          <Button
+            size="lg"
+            variant="secondary"
+            className="text-primary font-bold text-lg h-14 px-10 shadow-2xl hover:scale-105 transition-transform"
+            onClick={handleCTA}
+          >
+            অন্যদের থেকে এগিয়ে থাকুন
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
       </section>
 
       {/* ── Social Proof Banner ── */}
-      <section className="bg-primary py-4">
+      <section className="bg-card border-b py-6 overflow-hidden w-full overflow-x-hidden">
         <div className="container max-w-5xl px-4">
-          <div className="flex items-center justify-center gap-3 text-primary-foreground">
-            <Users className="h-5 w-5" />
-            <p className="text-sm md:text-base font-medium">
-              {studentCount > 0
-                ? `${studentCount.toLocaleString()}+ students practicing — Join them now!`
-                : "Join thousands of students preparing for their dream job!"}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features Section ── */}
-      <section id="features" className="py-16 md:py-20">
-        <div className="container max-w-5xl px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              সাফল্যের জন্য যা যা দরকার
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              একটি প্ল্যাটফর্মে আপনার প্রস্তুতির সবকিছু
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-            {features.map((feature, i) => (
-              <Card
-                key={feature.titleEn}
-                className="group card-shadow hover-scale cursor-default border-border/50 animate-fade-in"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                    <feature.icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground/70 mb-2">
-                    {feature.titleEn}
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Benefits Section ── */}
-      <section
-        id="benefits"
-        className="py-16 md:py-20 bg-secondary/5 dark:bg-secondary/10"
-      >
-        <div className="container max-w-5xl px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              কেন প্রস্তুতি ব্যবহার করবেন?
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              আপনার সাফল্যের পথকে সহজ ও কার্যকর করতে
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {benefits.map((b, i) => (
-              <div
-                key={i}
-                className="text-center p-6 rounded-2xl bg-card border border-border/50 card-shadow animate-fade-in"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <b.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">
-                  {b.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">{b.description}</p>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-foreground">
+            <div className="flex -space-x-3">
+              <Avatar className="border-2 border-background w-10 h-10"><img src="https://i.pravatar.cc/100?img=1" alt="Student" /></Avatar>
+              <Avatar className="border-2 border-background w-10 h-10"><img src="https://i.pravatar.cc/100?img=2" alt="Student" /></Avatar>
+              <Avatar className="border-2 border-background w-10 h-10"><img src="https://i.pravatar.cc/100?img=3" alt="Student" /></Avatar>
+              <Avatar className="border-2 border-background w-10 h-10 bg-primary text-primary-foreground text-xs font-bold items-center justify-center">10k+</Avatar>
+            </div>
+            <div className="text-center md:text-left">
+              <div className="flex justify-center md:justify-start text-yellow-500 mb-1">
+                {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
               </div>
-            ))}
+              <p className="text-sm font-medium">
+                {studentCount > 0
+                  ? `${studentCount.toLocaleString()}+ শিক্ষার্থী আমাদের সাথেই প্রস্তুতি নিচ্ছে!`
+                  : "১০ হাজারেরও বেশি শিক্ষার্থীর ভরসা!"}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Leaderboard Preview ── */}
-      <section id="leaderboard" className="py-16 md:py-20">
-        <div className="container max-w-5xl px-4">
-          <div className="text-center mb-10 animate-fade-in">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              🏆 লিডারবোর্ড
-            </h2>
-            <p className="text-muted-foreground">শীর্ষ পারফর্মারদের তালিকা</p>
+      <section id="leaderboard" className="py-20 bg-muted/20">
+        <div className="container max-w-4xl px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-foreground mb-4">🏆 টপ পারফর্মারস</h2>
+            <p className="text-muted-foreground">লিডারবোর্ড দেখে জানুন আপনি কোথায় আছেন</p>
           </div>
-          <Card className="max-w-lg mx-auto card-shadow border-border/50 overflow-hidden animate-fade-in">
-            <CardContent className="p-0">
+          <Card className="mx-auto card-shadow border-border overflow-hidden">
+            <div className="bg-card p-4 border-b border-border flex justify-between items-center text-sm font-medium text-muted-foreground bg-muted/50">
+              <span className="w-16 text-center">Rank</span>
+              <span className="flex-1 px-4">Student</span>
+              <span className="w-20 text-right pr-4">Score</span>
+            </div>
+            <CardContent className="p-0 bg-card">
               {leaderboard.length > 0 ? (
                 leaderboard.map((u, i) => (
                   <div
                     key={u.rank}
-                    className={`flex items-center gap-4 px-5 py-4 transition-colors hover:bg-muted/50 ${
-                      i !== leaderboard.length - 1
-                        ? "border-b border-border/50"
-                        : ""
-                    } ${u.rank <= 3 ? "bg-accent/5" : ""}`}
+                    className={`flex items-center px-4 py-4 transition-colors hover:bg-muted/50 ${
+                      i !== leaderboard.length - 1 ? "border-b border-border" : ""
+                    } ${u.rank <= 3 ? "bg-accent/5 font-semibold" : ""}`}
                   >
-                    <span className="text-2xl w-8 text-center">
+                    <span className="text-2xl w-16 text-center">
                       {rankEmoji(u.rank)}
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate">
+                    <div className="flex-1 min-w-0 px-2">
+                      <p className="text-foreground truncate text-base">
                         {u.name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        স্কোর: {u.score}
-                      </p>
                     </div>
-                    <span className="text-sm font-bold text-primary">
-                      #{u.rank}
+                    <span className="text-base font-bold text-foreground w-20 text-right pr-4">
+                      {u.score}
                     </span>
                   </div>
                 ))
               ) : (
-                <div className="px-5 py-8 text-center text-muted-foreground">
-                  <Trophy className="h-8 w-8 mx-auto mb-2 text-primary/40" />
-                  <p className="text-sm">
-                    এখনো কোনো ডেটা নেই — প্রথম পরীক্ষা দিয়ে শীর্ষে উঠুন!
-                  </p>
+                <div className="px-5 py-12 text-center text-muted-foreground">
+                  <LayoutDashboard className="h-10 w-10 mx-auto mb-3 text-muted" />
+                  <p className="text-sm">ডেটা লোড হচ্ছে অথবা এই সপ্তাহে কোনো টেস্ট দেওয়া হয়নি।</p>
                 </div>
               )}
             </CardContent>
           </Card>
-          <div className="text-center mt-6">
-            <Button variant="outline" className="hover-scale" onClick={handleCTA}>
-              সম্পূর্ণ লিডারবোর্ড দেখুন
-              <ChevronRight className="ml-1 h-4 w-4" />
+          <div className="text-center mt-10">
+            <Button size="lg" className="bg-foreground text-background hover:bg-foreground/90 hover-scale shadow-lg" onClick={handleCTA}>
+              প্রতিযোগিতায় আপনিও যোগ দিন!
             </Button>
           </div>
         </div>
       </section>
 
       {/* ── Testimonials ── */}
-      <section
-        id="testimonials"
-        className="py-16 md:py-20 bg-secondary/5 dark:bg-secondary/10"
-      >
+      <section id="testimonials" className="py-20 text-center">
         <div className="container max-w-5xl px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
-              শিক্ষার্থীদের মতামত
-            </h2>
-            <p className="text-muted-foreground">
-              যারা ইতোমধ্যে প্রস্তুতি নিচ্ছে তাদের অভিজ্ঞতা
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <h2 className="text-3xl font-bold text-foreground mb-12">শিক্ষার্থীদের মতামত</h2>
+          <div className="grid md:grid-cols-3 gap-6 text-left">
             {testimonials.map((t, i) => (
-              <Card
-                key={i}
-                className="card-shadow border-border/50 animate-fade-in"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+              <Card key={i} className="card-shadow border-border bg-card hover:-translate-y-1 transition-transform">
+                <CardContent className="p-8">
+                  <div className="flex text-yellow-500 mb-4">
+                    {[1,2,3,4,5].map(star => <Star key={star} className="h-4 w-4 fill-current" />)}
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed italic mb-6">
+                    "{t.text}"
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 border border-border">
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
                         {t.avatar}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="font-bold text-foreground">
                         {t.name}
                       </p>
                       <p className="text-xs text-muted-foreground">{t.role}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    "{t.text}"
-                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -456,52 +548,89 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── FAQ Section ── */}
+      <section className="py-20 bg-muted/30">
+        <div className="container max-w-3xl px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">সাধারণ জিজ্ঞাসা (FAQ)</h2>
+            <p className="text-muted-foreground">আপনার মনে কোনো প্রশ্ন থাকলে এখান থেকে জেনে নিন</p>
+          </div>
+          <Card className="p-2 border-border/50">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="px-4">
+                  <AccordionTrigger className="text-left font-semibold text-base py-4 hover:no-underline hover:text-primary">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Card>
+        </div>
+      </section>
+
       {/* ── Final CTA ── */}
-      <section className="py-16 md:py-20">
-        <div className="container max-w-5xl px-4 text-center animate-fade-in">
-          <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-            আজই শুরু করুন — সম্পূর্ণ বিনামূল্যে! 🚀
+      <section className="py-20 md:py-32">
+        <div className="container max-w-3xl px-4 text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-foreground mb-6">
+            আর দেরি কেন? সফলতার যাত্রা শুরু হোক আজই! 🚀
           </h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            হাজারো শিক্ষার্থী ইতোমধ্যে প্রস্তুতি নিচ্ছে। আপনিও শুরু করুন!
+          <p className="text-lg text-muted-foreground mb-10">
+            হাজারো শিক্ষার্থী ইতোমধ্যে প্রস্তুতি নিচ্ছে। একটি ফ্রি একাউন্ট তৈরি করে আপনিও যোগ দিন।
           </p>
           <Button
             size="lg"
-            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[52px] text-base px-10 shadow-lg hover:shadow-xl transition-all duration-200 hover-scale"
+            className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold min-h-[60px] text-lg px-12 shadow-2xl hover-scale"
             onClick={handleCTA}
           >
-            Start Free Mock Test
-            <ArrowRight className="ml-2 h-5 w-5" />
+            ফ্রি একাউন্ট খুলুন
+            <ArrowRight className="ml-2 h-6 w-6" />
           </Button>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t py-8 bg-card">
+      <footer className="border-t py-12 bg-card">
         <div className="container max-w-5xl px-4 text-center">
-          <p className="text-2xl font-bold text-primary mb-2">প্রস্তুতি</p>
-          <p className="text-sm text-muted-foreground">
-            বাংলাদেশের সরকারি চাকরি প্রস্তুতির বিশ্বস্ত সঙ্গী
+          <p className="text-3xl font-extrabold text-primary mb-4 tracking-tighter">প্রস্তুতি</p>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+            বাংলাদেশের সরকারি চাকরি, বিসিএস এবং অন্যান্য প্রতিযোগিতামূলক পরীক্ষা প্রস্তুতির বিশ্বস্ত ডিজিটাল প্ল্যাটফর্ম।
           </p>
-          <p className="text-xs text-muted-foreground mt-4">
-            © {new Date().getFullYear()} Prostuti. All rights reserved.
+          <div className="flex justify-center gap-6 text-sm text-muted-foreground mb-8">
+            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-foreground transition-colors">How it works</button>
+            <button onClick={() => scrollToSection('features')} className="hover:text-foreground transition-colors">Features</button>
+            <button onClick={() => scrollToSection('leaderboard')} className="hover:text-foreground transition-colors">Leaderboard</button>
+          </div>
+          <p className="text-xs text-muted-foreground border-t border-border pt-8">
+            © {new Date().getFullYear()} Prostuti (প্রস্তুতি). All rights reserved.
           </p>
         </div>
       </footer>
 
       {/* ── Sticky CTA (mobile) ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-background/80 backdrop-blur-lg border-t border-border/50 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-background/90 backdrop-blur-xl border-t border-border md:hidden shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)]">
         <Button
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold min-h-[48px] text-base shadow-lg"
+          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-bold h-14 text-base shadow-lg animate-bounce"
+          style={{ animationDuration: '3s' }}
           onClick={handleCTA}
         >
-          Start Free Mock Test
+          ফ্রি মক টেস্ট দিন এখনই
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
 
       {/* Bottom spacer for sticky CTA on mobile */}
-      <div className="h-16 md:hidden" />
+      <div className="h-24 md:hidden" />
     </div>
+  );
+}
+
+// Simple dummy icon for UI mockup
+function UserIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user h-5 w-5 text-primary"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
   );
 }
