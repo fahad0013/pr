@@ -128,7 +128,7 @@ export default function Subjects() {
       <div>
         <h1 className="mb-1 text-2xl font-bold">প্রাথমিক শিক্ষক নিয়োগ</h1>
         <p className="mb-5 text-sm text-muted-foreground">
-          বিষয়ভিত্তিক মিনি টেস্ট দিন — প্রতিটি বিষয়ে ২০টি আসল পরীক্ষার প্রশ্ন
+          বিষয়ভিত্তিক সেট বেছে নিন — প্রতিটি সেটে ২০টি প্রশ্ন ও ২০ নম্বর
         </p>
 
         {loading ? (
@@ -148,10 +148,12 @@ export default function Subjects() {
                     <span className="text-2xl">{sub.icon}</span>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold leading-tight">{sub.subject}</h3>
-                      <p className="text-xs text-muted-foreground">{sub.count}টি প্রশ্ন</p>
+                      <p className="text-xs text-muted-foreground">
+                        {Math.floor(sub.count / 20)}টি সেট • {sub.count}টি প্রশ্ন
+                      </p>
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {sub.count} নম্বর
+                      {Math.floor(sub.count / 20)} সেট
                     </Badge>
                   </div>
                   <Button
