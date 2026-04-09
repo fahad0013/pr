@@ -238,7 +238,7 @@ export default function Index() {
                   <p className="text-sm font-semibold text-foreground truncate">{test.name}</p>
                   <p className="text-xs text-muted-foreground">{test.questions} প্রশ্ন</p>
                 </div>
-                <Button size="sm" className="shrink-0 gap-1 min-h-[36px]" onClick={(e) => { e.stopPropagation(); requireAuth(); }}>
+                <Button size="sm" className="shrink-0 gap-1 min-h-[36px]" onClick={(e) => { e.stopPropagation(); if (user) navigate(`/exam/${test.id}`); else requireAuth(); }}>
                   শুরু
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
