@@ -65,7 +65,7 @@ export function TopNav() {
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/landing");
+    navigate("/");
   };
 
   const initial = (profileName || user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase();
