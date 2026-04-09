@@ -255,7 +255,7 @@ export default function ExamRoom() {
           .from("mistakes")
           .delete()
           .eq("user_id", user.id)
-          .in("question_id", correctQuestionIds);
+          .in("question_id", correctQuestionIds.map(Number));
       }
     }
 

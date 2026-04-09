@@ -63,7 +63,7 @@ export default function ErrorBank() {
     setLoading(false);
   };
 
-  const deleteMistake = async (id: string) => {
+  const deleteMistake = async (id: number) => {
     await supabase.from("mistakes").delete().eq("id", id);
     setMistakes((prev) => prev.filter((m) => m.id !== id));
   };
