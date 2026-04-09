@@ -252,10 +252,10 @@ export default function ExamResult() {
               <Zap className="h-4 w-4 text-accent" />
               +{xpEarned} XP
             </div>
-            {mockRank && (
+            {realRank && (
               <div className="flex items-center gap-1.5 rounded-full bg-primary/20 px-4 py-2 text-sm font-bold">
                 <Trophy className="h-4 w-4 text-primary" />
-                #{mockRank} র‍্যাংক
+                #{realRank} র‍্যাংক
               </div>
             )}
           </motion.div>
@@ -401,7 +401,7 @@ export default function ExamResult() {
                 </div>
                 <div className="rounded-xl bg-card border border-border/50 p-3 text-center">
                   <Trophy className="h-5 w-5 text-primary mx-auto mb-1" />
-                  <p className="text-xl font-bold text-foreground">{mockRank ? `#${mockRank}` : "—"}</p>
+                  <p className="text-xl font-bold text-foreground">{realRank ? `#${realRank}` : "—"}</p>
                   <p className="text-[10px] text-muted-foreground">লিডারবোর্ড র‍্যাংক</p>
                 </div>
               </div>
