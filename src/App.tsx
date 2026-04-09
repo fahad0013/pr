@@ -85,6 +85,7 @@ const App = () => (
               <Route path="/live-exam" element={<LiveExam />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/error-bank" element={<ErrorBank />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
