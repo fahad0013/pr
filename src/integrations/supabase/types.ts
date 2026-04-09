@@ -16,166 +16,199 @@ export type Database = {
     Tables: {
       mistakes: {
         Row: {
-          correct_answer: string | null
-          created_at: string
-          id: string
-          question_id: string
-          question_text: string | null
-          subject: string | null
-          test_id: string
-          user_answer: string | null
-          user_id: string
+          created_at: string | null
+          id: number
+          question_id: number | null
+          test_id: number | null
+          user_id: string | null
         }
         Insert: {
-          correct_answer?: string | null
-          created_at?: string
-          id?: string
-          question_id: string
-          question_text?: string | null
-          subject?: string | null
-          test_id: string
-          user_answer?: string | null
-          user_id: string
+          created_at?: string | null
+          id?: number
+          question_id?: number | null
+          test_id?: number | null
+          user_id?: string | null
         }
         Update: {
-          correct_answer?: string | null
-          created_at?: string
-          id?: string
-          question_id?: string
-          question_text?: string | null
-          subject?: string | null
-          test_id?: string
-          user_answer?: string | null
-          user_id?: string
+          created_at?: string | null
+          id?: number
+          question_id?: number | null
+          test_id?: number | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mistakes_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mistakes_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mistakes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string
-          daily_goal_minutes: number
+          current_streak: number | null
+          daily_goal_minutes: number | null
           display_name: string | null
           district: string | null
-          exams_completed: number
           id: string
           institution: string | null
           last_activity_date: string | null
-          onboarding_completed: boolean
           role: string | null
-          streak_count: number
-          subject_interest: string[] | null
-          total_score: number
-          updated_at: string
-          user_id: string
+          subject_interest: string | null
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string
-          daily_goal_minutes?: number
+          current_streak?: number | null
+          daily_goal_minutes?: number | null
           display_name?: string | null
           district?: string | null
-          exams_completed?: number
-          id?: string
+          id: string
           institution?: string | null
           last_activity_date?: string | null
-          onboarding_completed?: boolean
           role?: string | null
-          streak_count?: number
-          subject_interest?: string[] | null
-          total_score?: number
-          updated_at?: string
-          user_id: string
+          subject_interest?: string | null
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string
-          daily_goal_minutes?: number
+          current_streak?: number | null
+          daily_goal_minutes?: number | null
           display_name?: string | null
           district?: string | null
-          exams_completed?: number
           id?: string
           institution?: string | null
           last_activity_date?: string | null
-          onboarding_completed?: boolean
           role?: string | null
-          streak_count?: number
-          subject_interest?: string[] | null
-          total_score?: number
-          updated_at?: string
-          user_id?: string
+          subject_interest?: string | null
         }
         Relationships: []
       }
       questions: {
         Row: {
-          correct_index: number
-          created_at: string
-          difficulty: string | null
-          id: string
+          category: string | null
+          correct_answer: string
+          explanation: string | null
+          id: number
           options: Json
-          subject: string
-          test_id: string
-          text: string
+          question_text: string
+          test_id: number | null
         }
         Insert: {
-          correct_index: number
-          created_at?: string
-          difficulty?: string | null
-          id?: string
-          options?: Json
-          subject: string
-          test_id?: string
-          text: string
+          category?: string | null
+          correct_answer: string
+          explanation?: string | null
+          id?: number
+          options: Json
+          question_text: string
+          test_id?: number | null
         }
         Update: {
-          correct_index?: number
-          created_at?: string
-          difficulty?: string | null
-          id?: string
+          category?: string | null
+          correct_answer?: string
+          explanation?: string | null
+          id?: number
           options?: Json
-          subject?: string
-          test_id?: string
-          text?: string
+          question_text?: string
+          test_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       results: {
         Row: {
-          correct_answers: number
-          created_at: string
-          id: string
-          rank_in_test: number | null
-          score: number
+          correct_count: number | null
+          created_at: string | null
+          id: number
           subject_scores: Json | null
-          test_id: string
+          test_id: number | null
           time_taken: number | null
-          total_questions: number
-          user_id: string
+          total_score: number | null
+          user_id: string | null
+          wrong_count: number | null
         }
         Insert: {
-          correct_answers?: number
-          created_at?: string
-          id?: string
-          rank_in_test?: number | null
-          score?: number
+          correct_count?: number | null
+          created_at?: string | null
+          id?: number
           subject_scores?: Json | null
-          test_id: string
+          test_id?: number | null
           time_taken?: number | null
-          total_questions?: number
-          user_id: string
+          total_score?: number | null
+          user_id?: string | null
+          wrong_count?: number | null
         }
         Update: {
-          correct_answers?: number
-          created_at?: string
-          id?: string
-          rank_in_test?: number | null
-          score?: number
+          correct_count?: number | null
+          created_at?: string | null
+          id?: number
           subject_scores?: Json | null
-          test_id?: string
+          test_id?: number | null
           time_taken?: number | null
-          total_questions?: number
-          user_id?: string
+          total_score?: number | null
+          user_id?: string | null
+          wrong_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: number
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: number
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: number
+          title?: string
         }
         Relationships: []
       }
