@@ -121,7 +121,7 @@ export default function ExamRoom() {
       }
     } else {
       // Normal exam: load by test_id, optionally filter by subject
-      const testId = examId || "primary-mock-01";
+      const testId = examId || "1";
       let query = supabase
         .from("questions")
         .select("*")
