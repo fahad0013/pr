@@ -89,6 +89,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     loadDashboard();
+    checkAndAward();
   }, [user]);
 
   const loadDashboard = async () => {
