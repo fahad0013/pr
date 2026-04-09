@@ -119,10 +119,10 @@ export default function ExamResult() {
     fetchRank();
   }, [data?.testId, user]);
 
-  if (!data) return null;
-  const result = data;
-
-  const { questions, timeTaken, totalTime, testName } = result;
+  const questions = data?.questions || [];
+  const timeTaken = data?.timeTaken || 0;
+  const totalTime = data?.totalTime || 0;
+  const testName = data?.testName || "";
   const total = questions.length;
 
   // Stats computation
