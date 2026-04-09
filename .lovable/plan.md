@@ -1,14 +1,19 @@
 
 
-## Plan: Remove Empty Tests (ID 7 & 8)
+## Plan: Convert English digits to Bengali on LiveExam page
 
-Two tests have 0 questions and need to be deleted from the `tests` table:
-- **ID 7**: "Primary Mock Test" (0 questions)
-- **ID 8**: "প্রাথমিক শিক্ষক মক টেস্ট - ০৭" (0 questions)
+The question count (`exam.questionCount`) is rendered as a raw number, which shows English digits (80, 67, etc.). Need to convert to Bengali digits (৮০, ৬৭, etc.).
 
-### Steps
+### Changes
 
-1. **Delete test rows** — Use the Supabase insert tool to run `DELETE FROM tests WHERE id IN (7, 8)` to remove both empty tests.
+**File: `src/pages/LiveExam.tsx`**
 
-No code changes needed — the LiveExam page dynamically fetches tests, so removing the rows will automatically hide the cards.
+1. Add a helper function to convert English digits to Bengali:
+   ```ts
+   const toBengali = (n: number) => String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[+d]);
+   ```
+
+2. Update line 171: `{toBengali(exam.questionCount)} প্রশ্ন`
+3. Update line 197: `{toBengali(exam.questionCount)} প্রশ্ন`
+4. Update line 79 (the fallback in `formatDuration`): `${toBengali(minutes)} মিনিট` — so non-standard durations also show Bengali digits.
 
