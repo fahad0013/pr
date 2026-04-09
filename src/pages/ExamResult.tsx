@@ -478,7 +478,7 @@ export default function ExamResult() {
           </Button>
         </motion.div>
         <motion.div variants={item}>
-          <Link to="/leaderboard">
+          <Link to="/dashboard/leaderboard">
             <Button variant="ghost" className="w-full gap-2 text-primary">
               লিডারবোর্ড দেখুন
               <ArrowRight className="h-4 w-4" />
