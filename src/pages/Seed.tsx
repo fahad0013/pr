@@ -134,6 +134,34 @@ export default function Seed() {
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  if (!isUnlocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <Lock className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-xl font-bold">Admin Access Only</CardTitle>
+            <p className="text-sm text-muted-foreground">এই পেজে প্রবেশ করতে পাসওয়ার্ড দিন</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="পাসওয়ার্ড"
+              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+            />
+            <Button onClick={handleUnlock} className="w-full min-h-[44px] font-semibold">
+              Unlock
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
