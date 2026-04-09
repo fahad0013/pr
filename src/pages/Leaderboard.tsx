@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Trophy, Medal, MapPin, Building, Loader2 } from "lucide-react";
+import { Trophy, Medal, MapPin, Building, Loader2, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,9 @@ interface LeaderEntry {
   name: string;
   score: number;
   district: string;
+  institution: string;
   exams: number;
+  userId: string;
 }
 
 const medalColors: Record<number, string> = {
@@ -41,21 +43,42 @@ const item = {
 
 export default function Leaderboard() {
   const [filter, setFilter] = useState<FilterType>("all");
+  const [selectedTestId, setSelectedTestId] = useState<string>("all");
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState<LeaderEntry[]>([]);
+  const [allEntries, setAllEntries] = useState<LeaderEntry[]>([]);
+  const [myProfile, setMyProfile] = useState<{ district: string; institution: string } | null>(null);
+  const [tests, setTests] = useState<{ id: number; title: string }[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [myScore, setMyScore] = useState(0);
 
   useEffect(() => {
-    loadLeaderboard();
-  }, [user]);
+    loadData();
+  }, [user, selectedTestId]);
 
-  const loadLeaderboard = async () => {
+  const loadData = async () => {
     setLoading(true);
-    const { data: results } = await supabase
-      .from("results")
-      .select("user_id, total_score");
+
+    // Load tests list & my profile in parallel
+    const [testsRes, profileRes] = await Promise.all([
+      supabase.from("tests").select("id, title"),
+      user ? supabase.from("profiles").select("district, institution").eq("id", user.id).single() : null,
+    ]);
+
+    setTests((testsRes.data || []) as any[]);
+    if (profileRes?.data) {
+      setMyProfile({
+        district: (profileRes.data as any).district || "",
+        institution: (profileRes.data as any).institution || "",
+      });
+    }
+
+    // Load results (optionally filtered by test)
+    let query = supabase.from("results").select("user_id, total_score, test_id");
+    if (selectedTestId !== "all") {
+      query = query.eq("test_id", Number(selectedTestId) as any);
+    }
+    const { data: results } = await query;
 
     if (!results) {
       setLoading(false);
@@ -70,43 +93,64 @@ export default function Leaderboard() {
       userScores[r.user_id].exams += 1;
     });
 
-    const sorted = Object.entries(userScores)
-      .sort(([, a], [, b]) => b.score - a.score);
+    const sorted = Object.entries(userScores).sort(([, a], [, b]) => b.score - a.score);
+    const userIds = sorted.map(([id]) => id);
 
-    const userIds = sorted.slice(0, 20).map(([id]) => id);
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, display_name, district")
-      .in("id", userIds);
+    let profileMap: Record<string, { name: string; district: string; institution: string }> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, district, institution")
+        .in("id", userIds);
+      profiles?.forEach((p: any) => {
+        profileMap[p.id] = {
+          name: p.display_name || "ব্যবহারকারী",
+          district: p.district || "",
+          institution: p.institution || "",
+        };
+      });
+    }
 
-    const profileMap: Record<string, { name: string; district: string }> = {};
-    profiles?.forEach((p) => {
-      profileMap[p.id] = {
-        name: p.display_name || "ব্যবহারকারী",
-        district: p.district || "",
-      };
-    });
-
-    const list: LeaderEntry[] = sorted.slice(0, 20).map(([id, data], i) => ({
+    const list: LeaderEntry[] = sorted.map(([id, data], i) => ({
       rank: i + 1,
       name: profileMap[id]?.name || "ব্যবহারকারী",
       score: Math.round(data.score),
       district: profileMap[id]?.district || "",
+      institution: profileMap[id]?.institution || "",
       exams: data.exams,
+      userId: id,
     }));
 
-    setEntries(list);
+    setAllEntries(list);
 
     if (user) {
-      const myIdx = sorted.findIndex(([id]) => id === user.id);
+      const myIdx = list.findIndex((e) => e.userId === user.id);
       if (myIdx >= 0) {
         setMyRank(myIdx + 1);
-        setMyScore(Math.round(sorted[myIdx][1].score));
+        setMyScore(list[myIdx].score);
+      } else {
+        setMyRank(null);
+        setMyScore(0);
       }
     }
 
     setLoading(false);
   };
+
+  // Apply filter
+  const filteredEntries = allEntries.filter((e) => {
+    if (filter === "district" && myProfile?.district) {
+      return e.district === myProfile.district;
+    }
+    if (filter === "institution" && myProfile?.institution) {
+      return e.institution === myProfile.institution;
+    }
+    return true;
+  }).map((e, i) => ({ ...e, rank: i + 1 }));
+
+  const myFilteredRank = user
+    ? filteredEntries.findIndex((e) => e.userId === user.id) + 1 || null
+    : null;
 
   if (loading) {
     return (
@@ -116,12 +160,13 @@ export default function Leaderboard() {
     );
   }
 
-  const top3 = entries.slice(0, 3);
-  const rest = entries.slice(3);
+  const top3 = filteredEntries.slice(0, 3);
+  const rest = filteredEntries.slice(3, 20);
+  const isMyRankVisible = myFilteredRank && myFilteredRank <= 20;
 
   return (
     <motion.div
-      className="container max-w-2xl py-6 space-y-6"
+      className="container max-w-2xl py-6 pb-24 space-y-5"
       variants={container}
       initial="hidden"
       animate="show"
@@ -131,7 +176,27 @@ export default function Leaderboard() {
         <p className="text-sm text-muted-foreground">শীর্ষ প্রতিযোগীদের তালিকা</p>
       </motion.div>
 
-      {/* Filter tabs */}
+      {/* Test filter */}
+      <motion.div variants={item}>
+        <Select value={selectedTestId} onValueChange={setSelectedTestId}>
+          <SelectTrigger className="w-full">
+            <div className="flex items-center gap-2">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue placeholder="সব পরীক্ষা" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">সব পরীক্ষা</SelectItem>
+            {tests.map((t) => (
+              <SelectItem key={t.id} value={String(t.id)}>
+                {t.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </motion.div>
+
+      {/* Scope filter tabs */}
       <motion.div variants={item} className="flex gap-2">
         {[
           { value: "all" as const, label: "সবাই", icon: Trophy },
@@ -154,7 +219,27 @@ export default function Leaderboard() {
         ))}
       </motion.div>
 
-      {entries.length === 0 ? (
+      {filter !== "all" && !myProfile?.district && filter === "district" && (
+        <motion.div variants={item}>
+          <Card className="card-shadow border-accent/30">
+            <CardContent className="p-4 text-center text-sm text-muted-foreground">
+              জেলা ফিল্টার কাজ করতে প্রোফাইলে জেলা যোগ করুন
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {filter !== "all" && !myProfile?.institution && filter === "institution" && (
+        <motion.div variants={item}>
+          <Card className="card-shadow border-accent/30">
+            <CardContent className="p-4 text-center text-sm text-muted-foreground">
+              প্রতিষ্ঠান ফিল্টার কাজ করতে প্রোফাইলে প্রতিষ্ঠান যোগ করুন
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {filteredEntries.length === 0 ? (
         <motion.div variants={item}>
           <Card className="card-shadow">
             <CardContent className="p-8 text-center text-muted-foreground">
@@ -170,11 +255,12 @@ export default function Leaderboard() {
             <motion.div variants={item} className="grid grid-cols-3 gap-3">
               {[top3[1], top3[0], top3[2]].map((u) => (
                 <Card
-                  key={u.rank}
+                  key={u.userId}
                   className={cn(
                     "card-shadow text-center",
                     podiumBg[u.rank],
-                    u.rank === 1 && "-mt-4"
+                    u.rank === 1 && "-mt-4",
+                    user && u.userId === user.id && "ring-2 ring-primary"
                   )}
                 >
                   <CardContent className="flex flex-col items-center p-4">
@@ -196,8 +282,11 @@ export default function Leaderboard() {
           {/* Rest of leaderboard */}
           <div className="space-y-2">
             {rest.map((u) => (
-              <motion.div key={u.rank} variants={item}>
-                <Card className="card-shadow">
+              <motion.div key={u.userId} variants={item}>
+                <Card className={cn(
+                  "card-shadow",
+                  user && u.userId === user.id && "border-primary/40 bg-primary/5"
+                )}>
                   <CardContent className="flex items-center gap-3 p-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold">
                       {u.rank}
@@ -208,7 +297,9 @@ export default function Leaderboard() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold leading-tight">{u.name}</p>
+                      <p className="text-sm font-semibold leading-tight">
+                        {u.name} {user && u.userId === user.id && "(আপনি)"}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {u.district ? `${u.district} · ` : ""}{u.exams} পরীক্ষা
                       </p>
@@ -220,13 +311,13 @@ export default function Leaderboard() {
             ))}
           </div>
 
-          {/* Your rank */}
-          {myRank && (
+          {/* Your rank (if not in top 20) */}
+          {myFilteredRank && !isMyRankVisible && (
             <motion.div variants={item}>
               <Card className="border-primary/30 card-shadow">
                 <CardContent className="flex items-center gap-3 p-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                    {myRank}
+                    {myFilteredRank}
                   </span>
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
