@@ -166,7 +166,21 @@ export default function ExamResult() {
 
   const perf = getPerformanceMessage(stats.scorePercent);
   const xpEarned = getXpEarned(stats.scorePercent, total);
-  const mockRank = stats.scorePercent >= 60 ? Math.max(1, 50 - Math.floor(stats.scorePercent / 3)) : null;
+
+  const handleDownloadPDF = () => {
+    generateResultPDF({
+      testName,
+      questions,
+      timeTaken,
+      totalTime,
+      scorePercent: stats.scorePercent,
+      correct: stats.correct,
+      wrong: stats.wrong,
+      skipped: stats.skipped,
+    });
+  };
+
+  if (!data) return null;
 
   return (
     <motion.div
