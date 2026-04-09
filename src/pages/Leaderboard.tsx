@@ -126,6 +126,10 @@ export default function Leaderboard() {
 
     setAllEntries(list);
 
+    // Fetch badges for all users
+    const badgesMap = await fetchUserBadges(list.map((e) => e.userId));
+    setUserBadges(badgesMap);
+
     if (user) {
       const myIdx = list.findIndex((e) => e.userId === user.id);
       if (myIdx >= 0) {
