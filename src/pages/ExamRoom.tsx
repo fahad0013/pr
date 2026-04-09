@@ -70,9 +70,7 @@ export default function ExamRoom() {
   const isRevision = searchParams.get("mode") === "revision";
   const revisionSubject = searchParams.get("subject");
   const subjectFilter = searchParams.get("subject");
-  const setNumber = searchParams.get("set") ? Number(searchParams.get("set")) : null;
-  const isSetMode = examId === "subject" && !!subjectFilter && !!setNumber;
-  const isSubjectMode = !isRevision && !isSetMode && !!subjectFilter;
+  const isSubjectMode = !isRevision && !!subjectFilter;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);

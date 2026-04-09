@@ -57,20 +57,16 @@ export default function Seed() {
         }
 
         const questionCount = parsed.length;
-        const isLive = questionCount >= 70;
 
-        const subjectCategory = !isLive ? (parsed[0].category || "Unknown") : null;
-
-        // Step A: Insert test with user-provided title & description
+        // Step A: Insert test — always 'live' type
         const { data: testData, error: testError } = await supabase
           .from("tests")
           .insert({
             title: title.trim(),
             description: description.trim() || null,
-            test_type: isLive ? "live" : "subject",
-            duration_minutes: isLive ? 60 : 20,
+            test_type: "live",
+            duration_minutes: 60,
             status: "live",
-            subject_category: subjectCategory,
           } as any)
           .select("id")
           .single();
@@ -104,7 +100,7 @@ export default function Seed() {
           }
         }
 
-        const msg = `✅ ${file.name}: ${questionCount} questions → ${isLive ? "Live Exam" : `Subject: ${subjectCategory}`} (test_id: ${testId})`;
+        const msg = `✅ ${file.name}: ${questionCount} questions → Live Exam (test_id: ${testId})`;
         console.log(msg);
         newLogs.push({ file: file.name, status: "success", message: msg });
         toast.success(`${file.name} সফলভাবে সিড হয়েছে`);
@@ -130,7 +126,7 @@ export default function Seed() {
         <CardHeader>
           <CardTitle className="text-xl font-bold">🌱 Database Seeder</CardTitle>
           <p className="text-sm text-muted-foreground">
-            JSON ফাইল আপলোড করুন — ≥70 প্রশ্ন = Live Exam, &lt;70 = Subject Set
+            JSON ফাইল আপলোড করুন — সব প্রশ্ন একটি Live Exam হিসেবে সেভ হবে
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
