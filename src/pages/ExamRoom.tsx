@@ -219,7 +219,7 @@ export default function ExamRoom() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    const timeTaken = (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft;
+    const timeTaken = (isRevision ? Math.max(total * 60, 5 * 60) : examDuration) - timeLeft;
 
     if (user) {
       // Save mistakes (wrong answers) to DB
@@ -348,10 +348,10 @@ export default function ExamRoom() {
     }));
     navigate("/exam-result", {
       state: {
-        testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
+        testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : testTitle,
         questions: questionResults,
         timeTaken,
-        totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,
+        totalTime: isRevision ? Math.max(total * 60, 5 * 60) : examDuration,
         isRevision,
         testId: isRevision ? null : (Number(examId) || 1),
       },
