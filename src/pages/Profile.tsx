@@ -148,7 +148,7 @@ export default function Profile() {
 
   const handleNameSave = async () => {
     if (!user || !displayName.trim()) return;
-    const { error } = await supabase.from("profiles").update({ display_name: displayName.trim() }).eq("user_id", user.id);
+    const { error } = await supabase.from("profiles").update({ display_name: displayName.trim() }).eq("id", user.id);
     if (error) toast.error("নাম আপডেট ব্যর্থ হয়েছে");
     else toast.success("নাম আপডেট হয়েছে!");
     setEditingName(false);

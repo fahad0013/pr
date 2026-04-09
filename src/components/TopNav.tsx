@@ -52,7 +52,7 @@ export function TopNav() {
     // Listen for profile changes
     const channel = supabase
       .channel("profile-changes")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` }, (payload) => {
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` }, (payload) => {
         const p = payload.new as any;
         setProfileAvatar(p.avatar_url || null);
         setProfileName(p.display_name || null);
