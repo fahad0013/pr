@@ -89,7 +89,7 @@ export default function ExamRoom() {
   // Load questions from Supabase
   useEffect(() => {
     loadQuestions();
-  }, [examId, isRevision, subjectFilter]);
+  }, [examId, isRevision, subjectFilter, setNumber]);
 
   const loadQuestions = async () => {
     setLoading(true);
