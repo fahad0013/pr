@@ -160,6 +160,14 @@ export default function ExamResult() {
         className="relative overflow-hidden bg-gradient-to-br from-secondary via-secondary to-secondary/80 text-secondary-foreground"
       >
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-background/20 backdrop-blur-sm hover:bg-background/30 transition-colors"
+        >
+          {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        </button>
         <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-accent/10 blur-2xl" />
 
         <div className="relative max-w-2xl mx-auto px-4 pt-8 pb-10 text-center">
