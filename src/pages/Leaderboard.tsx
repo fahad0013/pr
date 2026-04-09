@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchUserBadges, type BadgeType } from "@/hooks/useBadges";
+import { BadgeIcon } from "@/components/BadgeDisplay";
 
 interface LeaderEntry {
   rank: number;
@@ -51,6 +53,7 @@ export default function Leaderboard() {
   const [tests, setTests] = useState<{ id: number; title: string }[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [myScore, setMyScore] = useState(0);
+  const [userBadges, setUserBadges] = useState<Record<string, BadgeType | null>>({});
 
   useEffect(() => {
     loadData();
@@ -122,6 +125,10 @@ export default function Leaderboard() {
     }));
 
     setAllEntries(list);
+
+    // Fetch badges for all users
+    const badgesMap = await fetchUserBadges(list.map((e) => e.userId));
+    setUserBadges(badgesMap);
 
     if (user) {
       const myIdx = list.findIndex((e) => e.userId === user.id);
@@ -270,7 +277,7 @@ export default function Leaderboard() {
                         {u.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-xs font-semibold leading-tight">{u.name}</p>
+                    <p className="text-xs font-semibold leading-tight">{u.name}<BadgeIcon type={userBadges[u.userId]} /></p>
                     {u.district && <p className="text-[10px] text-muted-foreground">{u.district}</p>}
                     <p className="mt-1 text-lg font-bold text-primary">{u.score}</p>
                   </CardContent>
@@ -299,6 +306,7 @@ export default function Leaderboard() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold leading-tight">
                         {u.name} {user && u.userId === user.id && "(আপনি)"}
+                        <BadgeIcon type={userBadges[u.userId]} />
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {u.district ? `${u.district} · ` : ""}{u.exams} পরীক্ষা

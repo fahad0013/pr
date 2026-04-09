@@ -26,6 +26,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useBadges } from "@/hooks/useBadges";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
+import { BadgeCelebration } from "@/components/BadgeCelebration";
 
 const container = {
   hidden: { opacity: 0 },
@@ -81,9 +84,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
 
+  const { badges, newBadge, dismissCelebration, checkAndAward } = useBadges();
+
   useEffect(() => {
     if (!user) return;
     loadDashboard();
+    checkAndAward();
   }, [user]);
 
   const loadDashboard = async () => {
@@ -447,6 +453,19 @@ export default function Dashboard() {
           </Card>
         </div>
       </motion.section>
+
+      {/* ─── Badges ─── */}
+      <motion.section variants={item}>
+        <h2 className="text-base font-semibold mb-3">অর্জিত ব্যাজ 🏅</h2>
+        <Card className="card-shadow">
+          <CardContent className="p-4">
+            <BadgeDisplay badges={badges} />
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {/* Badge Celebration Overlay */}
+      <BadgeCelebration badge={newBadge} onDismiss={dismissCelebration} />
 
       {/* ─── Subject Analytics ─── */}
       {data.radarData.length > 0 && (

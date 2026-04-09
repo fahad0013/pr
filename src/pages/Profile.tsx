@@ -11,6 +11,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { useBadges } from "@/hooks/useBadges";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
+import { BadgeCelebration } from "@/components/BadgeCelebration";
 
 const menuItems = [
   { icon: Bell, label: "নোটিফিকেশন", chevron: true },
@@ -40,6 +43,11 @@ export default function Profile() {
   const [profileData, setProfileData] = useState<any>(null);
 
   const email = user?.email;
+  const { badges, newBadge, dismissCelebration, checkAndAward } = useBadges();
+
+  useEffect(() => {
+    checkAndAward();
+  }, [checkAndAward]);
 
   useEffect(() => {
     if (!user) return;
@@ -143,6 +151,15 @@ export default function Profile() {
           </p>
         )}
       </motion.div>
+
+      {/* ─── Badges ─── */}
+      <motion.div variants={item}>
+        <h2 className="text-base font-semibold mb-3 text-center">অর্জিত ব্যাজ</h2>
+        <BadgeDisplay badges={badges} />
+      </motion.div>
+
+      {/* ─── Badge Celebration ─── */}
+      <BadgeCelebration badge={newBadge} onDismiss={dismissCelebration} />
 
       {/* ─── Profile Info Cards ─── */}
       <motion.div variants={item}>
