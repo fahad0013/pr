@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Lock, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,19 +12,22 @@ import { LoginPromptModal } from "@/components/LoginPromptModal";
 interface SubjectInfo {
   subject: string;
   icon: string;
-  count: number;
-  attempted: number;
+  setCount: number;
+  questionCount: number;
 }
 
 const subjectMeta: Record<string, string> = {
+  "Bangla": "📚",
+  "English": "🔤",
+  "Math": "🔢",
+  "GK": "🌍",
   "বাংলা": "📚",
   "ইংরেজি": "🔤",
   "গণিত": "🔢",
   "সাধারণ জ্ঞান": "🌍",
 };
 
-// Map English DB names to Bengali display names
-const subjectNameMap: Record<string, string> = {
+const subjectDisplayName: Record<string, string> = {
   "Bangla": "বাংলা",
   "English": "ইংরেজি",
   "Math": "গণিত",
@@ -54,54 +56,48 @@ export default function Subjects() {
   const loadSubjects = async () => {
     setLoading(true);
 
-    // Fetch ALL questions (not just test_id=1)
-    const { data: questions } = await supabase
-      .from("questions")
-      .select("id, subject");
+    // Fetch subject-type tests grouped by subject_category
+    const { data: tests } = await supabase
+      .from("tests")
+      .select("id, subject_category")
+      .eq("test_type" as any, "subject");
 
-    if (!questions) {
+    if (!tests || tests.length === 0) {
+      setSubjects([]);
       setLoading(false);
       return;
     }
 
-    // Group by normalized Bengali subject name
-    const grouped: Record<string, number[]> = {};
-    (questions as any[]).forEach((q: any) => {
-      const rawSubj = q.subject || q.category || "অন্যান্য";
-      const subj = subjectNameMap[rawSubj] || rawSubj;
-      if (!grouped[subj]) grouped[subj] = [];
-      grouped[subj].push(q.id);
+    // Count questions per test
+    const testIds = tests.map((t: any) => t.id);
+    const { data: questions } = await supabase
+      .from("questions")
+      .select("test_id")
+      .in("test_id", testIds);
+
+    const qCountByTest: Record<number, number> = {};
+    questions?.forEach((q: any) => {
+      qCountByTest[q.test_id] = (qCountByTest[q.test_id] || 0) + 1;
     });
 
-    // Get user's results to calculate attempted count
-    let attemptedBySubject: Record<string, number> = {};
-    if (user) {
-      const { data: results } = await supabase
-        .from("results")
-        .select("subject_scores")
-        .eq("user_id", user.id);
+    // Group by subject_category
+    const grouped: Record<string, { setCount: number; questionCount: number }> = {};
+    tests.forEach((t: any) => {
+      const cat = t.subject_category || "Unknown";
+      if (!grouped[cat]) grouped[cat] = { setCount: 0, questionCount: 0 };
+      grouped[cat].setCount += 1;
+      grouped[cat].questionCount += qCountByTest[t.id] || 0;
+    });
 
-      if (results) {
-        results.forEach((r) => {
-          if (r.subject_scores && typeof r.subject_scores === "object") {
-            const scores = r.subject_scores as Record<string, any>;
-            Object.keys(scores).forEach((subj) => {
-              attemptedBySubject[subj] = (attemptedBySubject[subj] || 0) + 1;
-            });
-          }
-        });
-      }
-    }
-
-    const subjectList: SubjectInfo[] = Object.entries(grouped).map(([subject, ids]) => ({
+    const subjectList: SubjectInfo[] = Object.entries(grouped).map(([subject, info]) => ({
       subject,
       icon: subjectMeta[subject] || "📝",
-      count: ids.length,
-      attempted: attemptedBySubject[subject] || 0,
+      setCount: info.setCount,
+      questionCount: info.questionCount,
     }));
 
-    // Sort in a consistent order
-    const order = ["বাংলা", "ইংরেজি", "গণিত", "সাধারণ জ্ঞান"];
+    // Sort consistently
+    const order = ["Bangla", "English", "Math", "GK", "বাংলা", "ইংরেজি", "গণিত", "সাধারণ জ্ঞান"];
     subjectList.sort((a, b) => {
       const ai = order.indexOf(a.subject);
       const bi = order.indexOf(b.subject);
@@ -115,6 +111,8 @@ export default function Subjects() {
   const handleStartExam = (subject: string) => {
     navigate(`/dashboard/subjects/${encodeURIComponent(subject)}`);
   };
+
+  const getDisplayName = (subject: string) => subjectDisplayName[subject] || subject;
 
   return (
     <div className="container max-w-2xl py-6 animate-fade-in space-y-8">
@@ -135,6 +133,8 @@ export default function Subjects() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
+        ) : subjects.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">কোনো বিষয়ভিত্তিক সেট পাওয়া যায়নি</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {subjects.map((sub) => (
@@ -147,13 +147,13 @@ export default function Subjects() {
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-2xl">{sub.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold leading-tight">{sub.subject}</h3>
+                      <h3 className="font-semibold leading-tight">{getDisplayName(sub.subject)}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {Math.floor(sub.count / 20)}টি সেট • {sub.count}টি প্রশ্ন
+                        {sub.setCount}টি সেট • {sub.questionCount}টি প্রশ্ন
                       </p>
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {Math.floor(sub.count / 20)} সেট
+                      {sub.setCount} সেট
                     </Badge>
                   </div>
                   <Button
