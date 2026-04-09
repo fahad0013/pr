@@ -43,6 +43,11 @@ export default function Profile() {
   const [profileData, setProfileData] = useState<any>(null);
 
   const email = user?.email;
+  const { badges, newBadge, dismissCelebration, checkAndAward } = useBadges();
+
+  useEffect(() => {
+    checkAndAward();
+  }, [checkAndAward]);
 
   useEffect(() => {
     if (!user) return;
