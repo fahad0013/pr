@@ -24,6 +24,7 @@ import { RadarChart } from "@/components/RadarChart";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 const container = {
