@@ -90,6 +90,11 @@ export default function Seed() {
       return;
     }
 
+    if (hasValidationErrors) {
+      toast.error("কিছু ফাইলে category ফিল্ড নেই। আপলোড বাতিল।");
+      return;
+    }
+
     setSeeding(true);
     setLogs([]);
     const newLogs: SeedLog[] = [];
