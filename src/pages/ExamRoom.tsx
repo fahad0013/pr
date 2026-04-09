@@ -119,7 +119,7 @@ export default function ExamRoom() {
       }
     } else {
       // Normal exam: load by test_id
-      const testId = examId || "bcs-mock-07";
+      const testId = examId || "primary-mock-01";
       const { data } = await supabase
         .from("questions")
         .select("*")
