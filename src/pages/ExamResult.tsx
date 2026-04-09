@@ -79,6 +79,7 @@ const item = {
 export default function ExamResult() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const data = location.state as ExamResultData | undefined;
 
   // Fallback mock data if navigated directly
