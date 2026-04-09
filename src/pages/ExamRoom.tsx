@@ -108,12 +108,12 @@ export default function ExamRoom() {
         .in("id", questionIds);
 
       if (data) {
-        const qs: Question[] = data.map((q) => ({
-          id: q.id,
-          text: q.text,
+        const qs: Question[] = (data as any[]).map((q: any) => ({
+          id: String(q.id),
+          text: q.question_text,
           options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
-          correctIndex: q.correct_index,
-          subject: q.subject,
+          correctIndex: q.options.indexOf(q.correct_answer),
+          subject: q.subject || q.category || "",
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
