@@ -17,6 +17,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import ExamRoom from "./pages/ExamRoom";
 import ExamResult from "./pages/ExamResult";
+import ErrorBank from "./pages/ErrorBank";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
