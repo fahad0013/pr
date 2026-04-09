@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Subjects from "./pages/Subjects";
+import SubjectSets from "./pages/SubjectSets";
 import LiveExam from "./pages/LiveExam";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/dashboard" element={<DashboardAppLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="subjects" element={<Subjects />} />
+              <Route path="subjects/:subject" element={<SubjectSets />} />
               <Route path="live-exam" element={<LiveExam />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="profile" element={<Profile />} />

@@ -54,6 +54,14 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
+// Map Bengali subject names to their English DB equivalents
+const subjectVariantsMap: Record<string, string[]> = {
+  "বাংলা": ["বাংলা", "Bangla"],
+  "ইংরেজি": ["ইংরেজি", "English"],
+  "গণিত": ["গণিত", "Math"],
+  "সাধারণ জ্ঞান": ["সাধারণ জ্ঞান", "GK"],
+};
+
 export default function ExamRoom() {
   const navigate = useNavigate();
   const { examId } = useParams();
@@ -62,7 +70,9 @@ export default function ExamRoom() {
   const isRevision = searchParams.get("mode") === "revision";
   const revisionSubject = searchParams.get("subject");
   const subjectFilter = searchParams.get("subject");
-  const isSubjectMode = !isRevision && !!subjectFilter;
+  const setNumber = searchParams.get("set") ? Number(searchParams.get("set")) : null;
+  const isSetMode = examId === "subject" && !!subjectFilter && !!setNumber;
+  const isSubjectMode = !isRevision && !isSetMode && !!subjectFilter;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +89,7 @@ export default function ExamRoom() {
   // Load questions from Supabase
   useEffect(() => {
     loadQuestions();
-  }, [examId, isRevision, subjectFilter]);
+  }, [examId, isRevision, subjectFilter, setNumber]);
 
   const loadQuestions = async () => {
     setLoading(true);
@@ -120,6 +130,35 @@ export default function ExamRoom() {
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
         setTimeLeft(Math.max(qs.length * 60, 5 * 60)); // 1 min per question, min 5 min
+      }
+    } else if (isSetMode && subjectFilter && setNumber) {
+      // Set mode: fetch all questions for this subject, pick the right 20
+      const variants = subjectVariantsMap[subjectFilter] || [subjectFilter];
+      const { data } = await supabase
+        .from("questions")
+        .select("*")
+        .in("subject", variants as any)
+        .order("id");
+
+      if (data && data.length > 0) {
+        const startIdx = (setNumber - 1) * 20;
+        const sliced = (data as any[]).slice(startIdx, startIdx + 20);
+
+        if (sliced.length > 0) {
+          const qs: Question[] = sliced.map((q: any) => ({
+            id: String(q.id),
+            text: q.question_text,
+            options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
+            correctIndex: q.options.indexOf(q.correct_answer),
+            subject: q.subject || q.category || "",
+          }));
+          setQuestions(qs);
+          setAnswers(qs.map(() => ({ selected: null, marked: false })));
+          const dur = 20 * 60; // 20 minutes for 20 questions
+          setExamDuration(dur);
+          setTimeLeft(dur);
+          setTestTitle(`${subjectFilter} সেট ${setNumber}`);
+        }
       }
     } else {
       // Normal exam: load by test_id, optionally filter by subject

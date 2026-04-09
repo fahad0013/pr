@@ -24,6 +24,14 @@ const subjectMeta: Record<string, string> = {
   "সাধারণ জ্ঞান": "🌍",
 };
 
+// Map English DB names to Bengali display names
+const subjectNameMap: Record<string, string> = {
+  "Bangla": "বাংলা",
+  "English": "ইংরেজি",
+  "Math": "গণিত",
+  "GK": "সাধারণ জ্ঞান",
+};
+
 const comingSoonExams = [
   { name: "BCS প্রিলিমিনারি", icon: "🏛️" },
   { name: "ব্যাংক নিয়োগ", icon: "🏦" },
@@ -46,21 +54,21 @@ export default function Subjects() {
   const loadSubjects = async () => {
     setLoading(true);
 
-    // Fetch all questions grouped by subject
+    // Fetch ALL questions (not just test_id=1)
     const { data: questions } = await supabase
       .from("questions")
-      .select("id, subject")
-      .eq("test_id", 1 as any);
+      .select("id, subject");
 
     if (!questions) {
       setLoading(false);
       return;
     }
 
-    // Group by subject
+    // Group by normalized Bengali subject name
     const grouped: Record<string, number[]> = {};
     (questions as any[]).forEach((q: any) => {
-      const subj = q.subject || q.category || "অন্যান্য";
+      const rawSubj = q.subject || q.category || "অন্যান্য";
+      const subj = subjectNameMap[rawSubj] || rawSubj;
       if (!grouped[subj]) grouped[subj] = [];
       grouped[subj].push(q.id);
     });
@@ -105,11 +113,7 @@ export default function Subjects() {
   };
 
   const handleStartExam = (subject: string) => {
-    if (!user) {
-      setLoginPrompt(true);
-      return;
-    }
-    navigate(`/exam/1?subject=${encodeURIComponent(subject)}`);
+    navigate(`/dashboard/subjects/${encodeURIComponent(subject)}`);
   };
 
   return (
@@ -124,7 +128,7 @@ export default function Subjects() {
       <div>
         <h1 className="mb-1 text-2xl font-bold">প্রাথমিক শিক্ষক নিয়োগ</h1>
         <p className="mb-5 text-sm text-muted-foreground">
-          বিষয়ভিত্তিক মিনি টেস্ট দিন — প্রতিটি বিষয়ে ২০টি আসল পরীক্ষার প্রশ্ন
+          বিষয়ভিত্তিক সেট বেছে নিন — প্রতিটি সেটে ২০টি প্রশ্ন ও ২০ নম্বর
         </p>
 
         {loading ? (
@@ -144,10 +148,12 @@ export default function Subjects() {
                     <span className="text-2xl">{sub.icon}</span>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold leading-tight">{sub.subject}</h3>
-                      <p className="text-xs text-muted-foreground">{sub.count}টি প্রশ্ন</p>
+                      <p className="text-xs text-muted-foreground">
+                        {Math.floor(sub.count / 20)}টি সেট • {sub.count}টি প্রশ্ন
+                      </p>
                     </div>
                     <Badge variant="secondary" className="text-xs shrink-0">
-                      {sub.count} নম্বর
+                      {Math.floor(sub.count / 20)} সেট
                     </Badge>
                   </div>
                   <Button
