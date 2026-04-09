@@ -1,7 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { generateResultPDF } from "@/utils/generateResultPDF";
 import {
   CheckCircle,
   XCircle,
