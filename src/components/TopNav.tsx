@@ -1,4 +1,4 @@
-import { Home, BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn, LogOut } from "lucide-react";
+import { BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
