@@ -14,7 +14,7 @@ import {
   BookX,
   Star,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -60,10 +60,10 @@ const leaderboard = [
 ];
 
 const mistakesSummary = [
-  { subject: "বাংলা", count: 12 },
-  { subject: "ইংরেজি", count: 18 },
-  { subject: "গণিত", count: 24 },
-  { subject: "সা. জ্ঞান", count: 8 },
+  { subject: "বাংলা", count: 12, emoji: "📚" },
+  { subject: "ইংরেজি", count: 18, emoji: "🔤" },
+  { subject: "গণিত", count: 24, emoji: "🔢" },
+  { subject: "সা. জ্ঞান", count: 8, emoji: "🌍" },
 ];
 
 const radarData = [
@@ -91,6 +91,7 @@ function getLevelTitle(level: number) {
 
 export default function Index() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
 
@@ -294,21 +295,22 @@ export default function Index() {
         </Card>
       </motion.section>
 
-      {/* ─── 7. Mistake Tracker ─── */}
+      {/* ─── 7. Mistake Tracker / Error Bank ─── */}
       <motion.section variants={item}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold flex items-center gap-2">
             <BookX className="h-4 w-4 text-destructive" />
             ভুল উত্তরের খাতা
           </h2>
-          <span className="text-xs text-muted-foreground">
-            মোট {mistakesSummary.reduce((a, b) => a + b.count, 0)}টি
-          </span>
+          <Link to="/error-bank" className="text-xs font-medium text-primary hover:underline flex items-center gap-0.5">
+            সব দেখুন <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
         <Card className="card-shadow">
           <CardContent className="p-4 space-y-2.5">
             {mistakesSummary.map((m) => (
               <div key={m.subject} className="flex items-center gap-3">
+                <span className="text-lg">{m.emoji}</span>
                 <span className="text-sm font-medium text-foreground flex-1">{m.subject}</span>
                 <div className="w-24">
                   <Progress
@@ -319,14 +321,24 @@ export default function Index() {
                 <span className="text-xs text-destructive font-semibold w-12 text-right">{m.count}টি</span>
               </div>
             ))}
-            <Button
-              variant="outline"
-              className="w-full mt-1 min-h-[42px] border-destructive/30 text-destructive hover:bg-destructive/10 text-sm"
-              onClick={requireAuth}
-            >
-              <RotateCcw className="mr-1.5 h-4 w-4" />
-              রিভিশন পরীক্ষা দিন
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button
+                variant="outline"
+                className="flex-1 min-h-[42px] border-destructive/30 text-destructive hover:bg-destructive/10 text-sm"
+                onClick={() => user ? navigate("/exam/revision?mode=revision") : requireAuth()}
+              >
+                <RotateCcw className="mr-1.5 h-4 w-4" />
+                রিভিশন পরীক্ষা
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 min-h-[42px] text-sm"
+                onClick={() => navigate("/error-bank")}
+              >
+                <BookX className="mr-1.5 h-4 w-4" />
+                সব ভুল দেখুন
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </motion.section>

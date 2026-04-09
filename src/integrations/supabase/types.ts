@@ -107,6 +107,39 @@ export type Database = {
         }
         Relationships: []
       }
+      questions: {
+        Row: {
+          correct_index: number
+          created_at: string
+          difficulty: string | null
+          id: string
+          options: Json
+          subject: string
+          test_id: string
+          text: string
+        }
+        Insert: {
+          correct_index: number
+          created_at?: string
+          difficulty?: string | null
+          id?: string
+          options?: Json
+          subject: string
+          test_id?: string
+          text: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string
+          difficulty?: string | null
+          id?: string
+          options?: Json
+          subject?: string
+          test_id?: string
+          text?: string
+        }
+        Relationships: []
+      }
       results: {
         Row: {
           correct_answers: number
