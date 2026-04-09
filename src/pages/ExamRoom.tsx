@@ -124,6 +124,21 @@ export default function ExamRoom() {
     } else {
       // Normal exam: load by test_id, optionally filter by subject
       const testId = examId || "1";
+
+      // Fetch test metadata for duration and title
+      const { data: testMeta } = await supabase
+        .from("tests")
+        .select("title, duration_minutes")
+        .eq("id", testId as any)
+        .single();
+
+      if (testMeta) {
+        const dur = ((testMeta as any).duration_minutes || 60) * 60;
+        setExamDuration(dur);
+        setTimeLeft(dur);
+        setTestTitle((testMeta as any).title || "পরীক্ষা");
+      }
+
       let query = supabase
         .from("questions")
         .select("*")
@@ -145,7 +160,6 @@ export default function ExamRoom() {
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
-        // Set time: 1 min per question for subject mode, default for full exam
         if (isSubjectMode) {
           setTimeLeft(Math.max(qs.length * 60, 5 * 60));
         }
