@@ -454,6 +454,19 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
+      {/* ─── Badges ─── */}
+      <motion.section variants={item}>
+        <h2 className="text-base font-semibold mb-3">অর্জিত ব্যাজ 🏅</h2>
+        <Card className="card-shadow">
+          <CardContent className="p-4">
+            <BadgeDisplay badges={badges} />
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {/* Badge Celebration Overlay */}
+      <BadgeCelebration badge={newBadge} onDismiss={dismissCelebration} />
+
       {/* ─── Subject Analytics ─── */}
       {data.radarData.length > 0 && (
         <motion.section variants={item}>
