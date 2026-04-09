@@ -319,7 +319,7 @@ export default function ExamRoom() {
               ? "ভুল উত্তরের খাতা খালি — দারুণ!"
               : "এই পরীক্ষায় এখনো প্রশ্ন যোগ হয়নি।"}
           </p>
-          <Button onClick={() => navigate("/")} className="min-h-[44px]">
+          <Button onClick={() => navigate("/dashboard")} className="min-h-[44px]">
             ড্যাশবোর্ডে ফিরুন
           </Button>
         </div>

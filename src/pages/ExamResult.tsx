@@ -464,7 +464,7 @@ export default function ExamResult() {
           <Button
             variant="outline"
             className="min-h-[52px] gap-2"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
           >
             <Home className="h-4 w-4" />
             ড্যাশবোর্ড
