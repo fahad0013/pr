@@ -266,7 +266,7 @@ export default function ExamRoom() {
     }));
     navigate("/exam-result", {
       state: {
-        testName: isRevision ? "রিভিশন পরীক্ষা" : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
+        testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
         questions: questionResults,
         timeTaken: (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft,
         totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,
