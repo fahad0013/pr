@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Outlet } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +14,14 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AppLayout() {
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -22,7 +30,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/landing" element={<Landing />} />
-          <Route element={<Layout><Routes><Route path="/" element={<Index />} /><Route path="/subjects" element={<Subjects />} /><Route path="/live-exam" element={<LiveExam />} /><Route path="/leaderboard" element={<Leaderboard />} /><Route path="/profile" element={<Profile />} /><Route path="*" element={<NotFound />} /></Routes></Layout>} path="/*" />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/subjects" element={<Subjects />} />
+            <Route path="/live-exam" element={<LiveExam />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
