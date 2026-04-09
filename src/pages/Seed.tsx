@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Upload, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,6 +17,8 @@ interface SeedLog {
 export default function Seed() {
   const { user } = useAuth();
   const [files, setFiles] = useState<File[]>([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [logs, setLogs] = useState<SeedLog[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -28,6 +32,10 @@ export default function Seed() {
   const seedFiles = async () => {
     if (!user) {
       toast.error("লগইন করুন");
+      return;
+    }
+    if (!title.trim()) {
+      toast.error("টাইটেল দিন");
       return;
     }
     if (files.length === 0) {
@@ -52,15 +60,13 @@ export default function Seed() {
         const isLive = questionCount >= 70;
 
         const subjectCategory = !isLive ? (parsed[0].category || "Unknown") : null;
-        const testTitle = isLive
-          ? `Primary Mock Test`
-          : `${subjectCategory} Practice Set`;
 
-        // Step A: Insert test
+        // Step A: Insert test with user-provided title & description
         const { data: testData, error: testError } = await supabase
           .from("tests")
           .insert({
-            title: testTitle,
+            title: title.trim(),
+            description: description.trim() || null,
             test_type: isLive ? "live" : "subject",
             duration_minutes: isLive ? 60 : 20,
             status: "live",
@@ -113,6 +119,8 @@ export default function Seed() {
     setLogs(newLogs);
     setSeeding(false);
     setFiles([]);
+    setTitle("");
+    setDescription("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -126,6 +134,26 @@ export default function Seed() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="seed-title">টাইটেল <span className="text-destructive">*</span></Label>
+            <Input
+              id="seed-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="যেমন: প্রাথমিক শিক্ষক মক টেস্ট — ০১"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seed-desc">বিবরণ</Label>
+            <Input
+              id="seed-desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="যেমন: প্রাথমিক শিক্ষক নিয়োগ পরীক্ষার প্রশ্ন সমাধান - ২০২২"
+            />
+          </div>
+
           <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <input
@@ -145,7 +173,7 @@ export default function Seed() {
 
           <Button
             onClick={seedFiles}
-            disabled={seeding || files.length === 0}
+            disabled={seeding || files.length === 0 || !title.trim()}
             className="w-full min-h-[44px] font-semibold"
           >
             {seeding ? (
