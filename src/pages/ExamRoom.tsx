@@ -202,6 +202,18 @@ export default function ExamRoom() {
 
   const handleSubmit = () => {
     setSubmitted(true);
+    const questionResults = questions.map((q, i) => ({
+      ...q,
+      selected: answers[i].selected,
+    }));
+    navigate("/exam-result", {
+      state: {
+        testName: "BCS প্রিলি মক টেস্ট — ০৭",
+        questions: questionResults,
+        timeTaken: EXAM_DURATION - timeLeft,
+        totalTime: EXAM_DURATION,
+      },
+    });
   };
 
   // Stats
