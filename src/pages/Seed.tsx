@@ -18,12 +18,24 @@ interface SeedLog {
 
 export default function Seed() {
   const { user } = useAuth();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [password, setPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [logs, setLogs] = useState<SeedLog[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUnlock = () => {
+    if (password === ADMIN_PASSWORD) {
+      setIsUnlocked(true);
+      toast.success("অ্যাক্সেস মঞ্জুর হয়েছে!");
+    } else {
+      toast.error("Incorrect password");
+      setPassword("");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
