@@ -87,7 +87,7 @@ export default function ExamRoom() {
       let mistakeQuery = supabase
         .from("mistakes")
         .select("question_id")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id) as any;
 
       if (revisionSubject) {
         mistakeQuery = mistakeQuery.eq("subject", revisionSubject);
