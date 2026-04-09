@@ -110,7 +110,7 @@ export default function Profile() {
     supabase
       .from("profiles")
       .select("display_name, avatar_url")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data) {
