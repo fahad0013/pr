@@ -61,6 +61,8 @@ export default function ExamRoom() {
   const { user } = useAuth();
   const isRevision = searchParams.get("mode") === "revision";
   const revisionSubject = searchParams.get("subject");
+  const subjectFilter = searchParams.get("subject");
+  const isSubjectMode = !isRevision && !!subjectFilter;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
