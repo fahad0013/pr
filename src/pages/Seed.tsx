@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Upload, Loader2, CheckCircle, XCircle, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+
+const ADMIN_PASSWORD = "$~F4h4d~Pr0$tut1$";
 
 interface SeedLog {
   file: string;
@@ -16,12 +18,24 @@ interface SeedLog {
 
 export default function Seed() {
   const { user } = useAuth();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [password, setPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [logs, setLogs] = useState<SeedLog[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUnlock = () => {
+    if (password === ADMIN_PASSWORD) {
+      setIsUnlocked(true);
+      toast.success("অ্যাক্সেস মঞ্জুর হয়েছে!");
+    } else {
+      toast.error("Incorrect password");
+      setPassword("");
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -119,6 +133,34 @@ export default function Seed() {
     setDescription("");
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  if (!isUnlocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <Lock className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-xl font-bold">Admin Access Only</CardTitle>
+            <p className="text-sm text-muted-foreground">এই পেজে প্রবেশ করতে পাসওয়ার্ড দিন</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="পাসওয়ার্ড"
+              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+            />
+            <Button onClick={handleUnlock} className="w-full min-h-[44px] font-semibold">
+              Unlock
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
