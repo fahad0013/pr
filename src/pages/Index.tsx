@@ -351,7 +351,7 @@ export default function Index() {
               </div>
               <div className="flex-1">
                 <p className="text-[11px] font-semibold text-accent uppercase tracking-wide">🔴 লাইভ চলছে</p>
-                <p className="font-semibold text-foreground">BCS প্রিলি মক টেস্ট — ০৭</p>
+                <p className="font-semibold text-foreground">প্রাথমিক শিক্ষক মক টেস্ট — ০১</p>
                 <p className="text-xs text-muted-foreground">২৩৪ জন অংশগ্রহণ করছে</p>
               </div>
               <ArrowRight className="h-5 w-5 text-accent" />

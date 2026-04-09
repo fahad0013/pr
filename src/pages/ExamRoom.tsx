@@ -254,7 +254,7 @@ export default function ExamRoom() {
     }));
     navigate("/exam-result", {
       state: {
-        testName: isRevision ? "রিভিশন পরীক্ষা" : "BCS প্রিলি মক টেস্ট — ০৭",
+        testName: isRevision ? "রিভিশন পরীক্ষা" : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
         questions: questionResults,
         timeTaken: (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft,
         totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,
