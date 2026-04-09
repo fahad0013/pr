@@ -471,7 +471,7 @@ export default function ExamResult() {
           </Button>
           <Button
             className="min-h-[52px] gap-2"
-            onClick={() => navigate("/live-exam")}
+            onClick={() => navigate("/dashboard/live-exam")}
           >
             <RotateCcw className="h-4 w-4" />
             আরও পরীক্ষা
