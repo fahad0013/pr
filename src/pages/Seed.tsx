@@ -294,8 +294,9 @@ export default function Seed() {
             </div>
           )}
 
+          <Button
             onClick={seedFiles}
-            disabled={seeding || files.length === 0 || !title.trim()}
+            disabled={seeding || hasValidationErrors || files.length === 0 || !title.trim()}
             className="w-full min-h-[44px] font-semibold"
           >
             {seeding ? (
