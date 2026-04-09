@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
-  { to: "/", icon: Home, label: "হোম" },
+  { to: "/dashboard", icon: Home, label: "হোম" },
   { to: "/subjects", icon: BookOpen, label: "বিষয়" },
   { to: "/live-exam", icon: Radio, label: "লাইভ" },
   { to: "/leaderboard", icon: Trophy, label: "লিডারবোর্ড" },
