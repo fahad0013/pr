@@ -60,10 +60,10 @@ const leaderboard = [
 ];
 
 const mistakesSummary = [
-  { subject: "বাংলা", count: 12 },
-  { subject: "ইংরেজি", count: 18 },
-  { subject: "গণিত", count: 24 },
-  { subject: "সা. জ্ঞান", count: 8 },
+  { subject: "বাংলা", count: 12, emoji: "📚" },
+  { subject: "ইংরেজি", count: 18, emoji: "🔤" },
+  { subject: "গণিত", count: 24, emoji: "🔢" },
+  { subject: "সা. জ্ঞান", count: 8, emoji: "🌍" },
 ];
 
 const radarData = [
