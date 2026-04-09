@@ -290,6 +290,9 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           id: number
+          status: string
+          subject_category: string | null
+          test_type: string
           title: string
         }
         Insert: {
@@ -297,6 +300,9 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: number
+          status?: string
+          subject_category?: string | null
+          test_type?: string
           title: string
         }
         Update: {
@@ -304,6 +310,9 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: number
+          status?: string
+          subject_category?: string | null
+          test_type?: string
           title?: string
         }
         Relationships: []

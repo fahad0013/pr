@@ -38,9 +38,10 @@ export default function LiveExam() {
   }, [viewMode]);
 
   const loadTests = async () => {
-    const { data: testsData } = await supabase
+    const { data: testsData } = await (supabase
       .from("tests")
-      .select("id, title, description, duration_minutes")
+      .select("id, title, description, duration_minutes") as any)
+      .eq("test_type", "live")
       .order("id");
 
     if (testsData) {

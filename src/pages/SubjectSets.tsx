@@ -10,17 +10,18 @@ import { AuthModal } from "@/components/AuthModal";
 import { LoginPromptModal } from "@/components/LoginPromptModal";
 import { motion } from "framer-motion";
 
-const QUESTIONS_PER_SET = 20;
-
-// Map Bengali subject names to their English DB equivalents
-const subjectVariants: Record<string, string[]> = {
-  "বাংলা": ["বাংলা", "Bangla"],
-  "ইংরেজি": ["ইংরেজি", "English"],
-  "গণিত": ["গণিত", "Math"],
-  "সাধারণ জ্ঞান": ["সাধারণ জ্ঞান", "GK"],
+const subjectDisplayName: Record<string, string> = {
+  "Bangla": "বাংলা",
+  "English": "ইংরেজি",
+  "Math": "গণিত",
+  "GK": "সাধারণ জ্ঞান",
 };
 
 const subjectIcons: Record<string, string> = {
+  "Bangla": "📚",
+  "English": "🔤",
+  "Math": "🔢",
+  "GK": "🌍",
   "বাংলা": "📚",
   "ইংরেজি": "🔤",
   "গণিত": "🔢",
@@ -28,8 +29,10 @@ const subjectIcons: Record<string, string> = {
 };
 
 interface SetInfo {
+  testId: number;
   setNumber: number;
-  questionIds: number[];
+  title: string;
+  questionCount: number;
   completed: boolean;
   score: number | null;
 }
@@ -51,62 +54,55 @@ export default function SubjectSets() {
   const loadSets = async () => {
     setLoading(true);
 
-    // Get all variant names for this subject
-    const variants = subjectVariants[decodedSubject] || [decodedSubject];
-
-    // Fetch all questions matching any variant
-    const { data: questions } = await supabase
-      .from("questions")
-      .select("id")
-      .in("subject", variants as any)
+    // Fetch tests with matching subject_category and test_type='subject'
+    const { data: tests } = await (supabase
+      .from("tests")
+      .select("id, title") as any)
+      .eq("test_type", "subject")
+      .eq("subject_category", decodedSubject)
       .order("id");
 
-    if (!questions || questions.length === 0) {
+    if (!tests || tests.length === 0) {
       setSets([]);
       setLoading(false);
       return;
     }
 
-    // Chunk into sets of 20
-    const allIds = (questions as any[]).map((q) => q.id as number);
-    const setCount = Math.floor(allIds.length / QUESTIONS_PER_SET);
-    const setsData: SetInfo[] = [];
+    const testIds = tests.map((t: any) => t.id);
 
-    for (let i = 0; i < setCount; i++) {
-      setsData.push({
-        setNumber: i + 1,
-        questionIds: allIds.slice(i * QUESTIONS_PER_SET, (i + 1) * QUESTIONS_PER_SET),
-        completed: false,
-        score: null,
+    // Count questions per test
+    const { data: questions } = await supabase
+      .from("questions")
+      .select("test_id")
+      .in("test_id", testIds);
+
+    const qCount: Record<number, number> = {};
+    questions?.forEach((q: any) => {
+      qCount[q.test_id] = (qCount[q.test_id] || 0) + 1;
+    });
+
+    // Check completed tests
+    let completedMap: Record<number, number | null> = {};
+    if (user) {
+      const { data: results } = await supabase
+        .from("results")
+        .select("test_id, total_score")
+        .eq("user_id", user.id)
+        .in("test_id", testIds);
+
+      results?.forEach((r: any) => {
+        completedMap[r.test_id] = r.total_score;
       });
     }
 
-    // Check completed sets from results
-    if (user && setsData.length > 0) {
-      const { data: results } = await supabase
-        .from("results")
-        .select("subject_scores, total_score, correct_count, wrong_count")
-        .eq("user_id", user.id);
-
-      if (results) {
-        // We track completion by checking if a result exists with matching subject
-        // For simplicity, check results that have this subject in subject_scores
-        // and match question count = 20
-        const subjectResults = results.filter((r) => {
-          if (!r.subject_scores || typeof r.subject_scores !== "object") return false;
-          const scores = r.subject_scores as Record<string, any>;
-          return variants.some((v) => v in scores);
-        });
-
-        // Mark sets as completed based on order of results
-        subjectResults.forEach((r, idx) => {
-          if (idx < setsData.length) {
-            setsData[idx].completed = true;
-            setsData[idx].score = r.total_score as number;
-          }
-        });
-      }
-    }
+    const setsData: SetInfo[] = tests.map((t: any, idx: number) => ({
+      testId: t.id,
+      setNumber: idx + 1,
+      title: t.title,
+      questionCount: qCount[t.id] || 0,
+      completed: t.id in completedMap,
+      score: completedMap[t.id] ?? null,
+    }));
 
     setSets(setsData);
     setLoading(false);
@@ -117,10 +113,10 @@ export default function SubjectSets() {
       setLoginPrompt(true);
       return;
     }
-    // Navigate to exam with subject + set params
-    navigate(`/exam/subject?subject=${encodeURIComponent(decodedSubject)}&set=${set.setNumber}`);
+    navigate(`/exam/${set.testId}`);
   };
 
+  const displayName = subjectDisplayName[decodedSubject] || decodedSubject;
   const icon = subjectIcons[decodedSubject] || "📝";
 
   return (
@@ -132,7 +128,6 @@ export default function SubjectSets() {
         onLogin={() => { setLoginPrompt(false); setAuthOpen(true); }}
       />
 
-      {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate("/dashboard/subjects")}
@@ -142,10 +137,10 @@ export default function SubjectSets() {
         </button>
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <span>{icon}</span> {decodedSubject}
+            <span>{icon}</span> {displayName}
           </h1>
           <p className="text-sm text-muted-foreground">
-            প্রতিটি সেটে {QUESTIONS_PER_SET}টি প্রশ্ন — {QUESTIONS_PER_SET} নম্বর
+            প্রতিটি সেটে ২০টি প্রশ্ন — ২০ নম্বর
           </p>
         </div>
       </div>
@@ -166,7 +161,7 @@ export default function SubjectSets() {
         <div className="grid gap-3 sm:grid-cols-2">
           {sets.map((set, idx) => (
             <motion.div
-              key={set.setNumber}
+              key={set.testId}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
@@ -180,7 +175,7 @@ export default function SubjectSets() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-foreground">
-                      {decodedSubject} সেট {set.setNumber}
+                      {displayName} সেট {set.setNumber}
                     </h3>
                     {set.completed && (
                       <Badge className="bg-primary/10 text-primary hover:bg-primary/20 gap-1">
@@ -191,9 +186,9 @@ export default function SubjectSets() {
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                    <span>{QUESTIONS_PER_SET}টি প্রশ্ন</span>
+                    <span>{set.questionCount}টি প্রশ্ন</span>
                     <span className="w-px h-3 bg-border" />
-                    <span>{QUESTIONS_PER_SET} নম্বর</span>
+                    <span>{set.questionCount} নম্বর</span>
                     {set.score !== null && (
                       <>
                         <span className="w-px h-3 bg-border" />

@@ -20,6 +20,7 @@ import ExamRoom from "./pages/ExamRoom";
 import ExamResult from "./pages/ExamResult";
 import ErrorBank from "./pages/ErrorBank";
 import NotFound from "./pages/NotFound";
+import Seed from "./pages/Seed";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
             {/* Exam routes (full screen, no layout) */}
             <Route path="/exam/:examId" element={<ExamRoom />} />
             <Route path="/exam-result" element={<ExamResult />} />
+            <Route path="/seed" element={<Seed />} />
 
             {/* Protected Dashboard */}
             <Route path="/dashboard" element={<DashboardAppLayout />}>
