@@ -186,61 +186,30 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
 
-      {/* ── Public Navbar ── */}
-      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-md">
-        <div className="container max-w-6xl flex h-16 items-center justify-between px-4">
-          <span className="text-2xl font-bold text-primary">প্রস্তুতি</span>
-          <nav className="hidden md:flex items-center gap-6">
-            <a
-              href="#features"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              ফিচারসমূহ
-            </a>
-            <a
-              href="#benefits"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              সুবিধা
-            </a>
-            <a
-              href="#leaderboard"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              লিডারবোর্ড
-            </a>
-            <a
-              href="#testimonials"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              মতামত
-            </a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full"
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCTA}
-              className="gap-1.5"
-            >
-              <LogIn className="h-4 w-4" />
-              লগইন / সাইন আপ
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* ── Floating Actions ── */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="rounded-full bg-card/80 backdrop-blur-md shadow-sm"
+        >
+          {theme === "light" ? (
+            <Moon className="h-5 w-5" />
+          ) : (
+            <Sun className="h-5 w-5" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCTA}
+          className="gap-1.5 bg-card/80 backdrop-blur-md shadow-sm"
+        >
+          <LogIn className="h-4 w-4" />
+          লগইন / সাইন আপ
+        </Button>
+      </div>
 
       {/* ── Hero Section ── */}
       <section className="relative overflow-hidden">
