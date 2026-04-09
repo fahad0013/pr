@@ -105,11 +105,7 @@ export default function Subjects() {
   };
 
   const handleStartExam = (subject: string) => {
-    if (!user) {
-      setLoginPrompt(true);
-      return;
-    }
-    navigate(`/exam/1?subject=${encodeURIComponent(subject)}`);
+    navigate(`/dashboard/subjects/${encodeURIComponent(subject)}`);
   };
 
   return (
