@@ -152,6 +152,15 @@ export default function Profile() {
         )}
       </motion.div>
 
+      {/* ─── Badges ─── */}
+      <motion.div variants={item}>
+        <h2 className="text-base font-semibold mb-3 text-center">অর্জিত ব্যাজ</h2>
+        <BadgeDisplay badges={badges} />
+      </motion.div>
+
+      {/* ─── Badge Celebration ─── */}
+      <BadgeCelebration badge={newBadge} onDismiss={dismissCelebration} />
+
       {/* ─── Profile Info Cards ─── */}
       <motion.div variants={item}>
         <Card className="card-shadow">
