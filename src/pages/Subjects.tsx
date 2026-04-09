@@ -24,6 +24,14 @@ const subjectMeta: Record<string, string> = {
   "সাধারণ জ্ঞান": "🌍",
 };
 
+// Map English DB names to Bengali display names
+const subjectNameMap: Record<string, string> = {
+  "Bangla": "বাংলা",
+  "English": "ইংরেজি",
+  "Math": "গণিত",
+  "GK": "সাধারণ জ্ঞান",
+};
+
 const comingSoonExams = [
   { name: "BCS প্রিলিমিনারি", icon: "🏛️" },
   { name: "ব্যাংক নিয়োগ", icon: "🏦" },
@@ -46,21 +54,21 @@ export default function Subjects() {
   const loadSubjects = async () => {
     setLoading(true);
 
-    // Fetch all questions grouped by subject
+    // Fetch ALL questions (not just test_id=1)
     const { data: questions } = await supabase
       .from("questions")
-      .select("id, subject")
-      .eq("test_id", 1 as any);
+      .select("id, subject");
 
     if (!questions) {
       setLoading(false);
       return;
     }
 
-    // Group by subject
+    // Group by normalized Bengali subject name
     const grouped: Record<string, number[]> = {};
     (questions as any[]).forEach((q: any) => {
-      const subj = q.subject || q.category || "অন্যান্য";
+      const rawSubj = q.subject || q.category || "অন্যান্য";
+      const subj = subjectNameMap[rawSubj] || rawSubj;
       if (!grouped[subj]) grouped[subj] = [];
       grouped[subj].push(q.id);
     });
