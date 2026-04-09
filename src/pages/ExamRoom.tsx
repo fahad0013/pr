@@ -125,21 +125,21 @@ export default function ExamRoom() {
       let query = supabase
         .from("questions")
         .select("*")
-        .eq("test_id", testId);
+        .eq("test_id", testId as any);
 
       if (subjectFilter) {
-        query = query.eq("subject", subjectFilter);
+        query = query.eq("subject", subjectFilter as any);
       }
 
       const { data } = await query;
 
       if (data && data.length > 0) {
-        const qs: Question[] = data.map((q) => ({
-          id: q.id,
-          text: q.text,
+        const qs: Question[] = (data as any[]).map((q: any) => ({
+          id: String(q.id),
+          text: q.question_text,
           options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
-          correctIndex: q.correct_index,
-          subject: q.subject,
+          correctIndex: q.options.indexOf(q.correct_answer),
+          subject: q.subject || q.category || "",
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
