@@ -38,7 +38,7 @@ interface AnswerState {
   marked: boolean;
 }
 
-const EXAM_DURATION = 15 * 60; // 15 minutes
+const DEFAULT_EXAM_DURATION = 60 * 60; // 60 minutes default
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
