@@ -40,7 +40,7 @@ export function TopNav() {
       const { data } = await supabase
         .from("profiles")
         .select("avatar_url, display_name")
-        .eq("user_id", user.id)
+        .eq("id", user.id)
         .single();
       if (data) {
         setProfileAvatar(data.avatar_url || user.user_metadata?.avatar_url || null);
