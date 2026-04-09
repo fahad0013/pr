@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_activity: {
+        Row: {
+          activity_date: string
+          id: string
+          minutes_spent: number | null
+          tests_completed: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          id?: string
+          minutes_spent?: number | null
+          tests_completed?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          id?: string
+          minutes_spent?: number | null
+          tests_completed?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       mistakes: {
         Row: {
           correct_answer: string | null
