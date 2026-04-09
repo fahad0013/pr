@@ -90,7 +90,7 @@ export default function Dashboard() {
     setLoading(true);
 
     // Parallel queries
-    const [profileRes, resultsRes, mistakesRes, testsRes, leaderboardRes] =
+    const [profileRes, resultsRes, mistakesRes, testsRes, leaderboardRes, dailyRes] =
       await Promise.all([
         supabase
           .from("profiles")
@@ -111,6 +111,12 @@ export default function Dashboard() {
         supabase
           .from("results")
           .select("user_id, total_score"),
+        supabase
+          .from("daily_activity" as any)
+          .select("minutes_spent, tests_completed")
+          .eq("user_id", user.id)
+          .eq("activity_date", new Date().toISOString().split("T")[0])
+          .single(),
       ]);
 
     const profile = profileRes.data;
