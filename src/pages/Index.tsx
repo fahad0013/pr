@@ -91,6 +91,7 @@ function getLevelTitle(level: number) {
 
 export default function Index() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState(false);
 
