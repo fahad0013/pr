@@ -1,0 +1,1 @@
+DELETE FROM public.tests WHERE id IN (7, 8);
