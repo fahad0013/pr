@@ -1,4 +1,4 @@
-import { Home, BookOpen, Radio, Trophy, User, Flame } from "lucide-react";
+import { BookOpen, Radio, Trophy, User, Flame } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
