@@ -494,6 +494,18 @@ export default function ExamResult() {
           </details>
         </motion.div>
 
+        {/* ─── PDF Download ─── */}
+        <motion.div variants={item}>
+          <Button
+            variant="outline"
+            className="w-full min-h-[52px] gap-2 border-primary/30 text-primary hover:bg-primary/10"
+            onClick={handleDownloadPDF}
+          >
+            <Download className="h-4 w-4" />
+            📥 রেজাল্ট ডাউনলোড (PDF)
+          </Button>
+        </motion.div>
+
         {/* ─── Action Buttons ─── */}
         <motion.div variants={item} className="grid grid-cols-2 gap-3 pt-2">
           <Button
