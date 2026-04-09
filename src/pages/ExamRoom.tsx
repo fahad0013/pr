@@ -1,0 +1,535 @@
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Flag,
+  Clock,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  Grid3X3,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+/* ── Types ── */
+interface Question {
+  id: string;
+  text: string;
+  options: string[];
+  correctIndex: number;
+  subject: string;
+}
+
+interface AnswerState {
+  selected: number | null;
+  marked: boolean;
+}
+
+/* ── Mock questions ── */
+const MOCK_QUESTIONS: Question[] = [
+  {
+    id: "q1",
+    text: "'সোনার তরী' কবিতাটি কোন কবির লেখা?",
+    options: ["কাজী নজরুল ইসলাম", "রবীন্দ্রনাথ ঠাকুর", "জীবনানন্দ দাশ", "মাইকেল মধুসূদন দত্ত"],
+    correctIndex: 1,
+    subject: "বাংলা",
+  },
+  {
+    id: "q2",
+    text: "বাংলাদেশের জাতীয় সংসদ ভবনের স্থপতি কে?",
+    options: ["লুই আই কান", "এফ আর খান", "মাজহারুল ইসলাম", "জন বেচটেল"],
+    correctIndex: 0,
+    subject: "সাধারণ জ্ঞান",
+  },
+  {
+    id: "q3",
+    text: "Which one is correct?",
+    options: ["He come here yesterday", "He came here yesterday", "He has come here yesterday", "He was come here yesterday"],
+    correctIndex: 1,
+    subject: "English",
+  },
+  {
+    id: "q4",
+    text: "একটি ত্রিভুজের তিন বাহুর দৈর্ঘ্য ৩, ৪ ও ৫ হলে ত্রিভুজটির ক্ষেত্রফল কত?",
+    options: ["৫", "৬", "৭.৫", "১০"],
+    correctIndex: 1,
+    subject: "গণিত",
+  },
+  {
+    id: "q5",
+    text: "বাংলাদেশের স্বাধীনতা দিবস কত তারিখে?",
+    options: ["১৬ ডিসেম্বর", "২৬ মার্চ", "২১ ফেব্রুয়ারি", "১৭ মার্চ"],
+    correctIndex: 1,
+    subject: "সাধারণ জ্ঞান",
+  },
+  {
+    id: "q6",
+    text: "'কবর' নাটকটি কার রচনা?",
+    options: ["মুনীর চৌধুরী", "সৈয়দ ওয়ালীউল্লাহ", "সেলিম আল দীন", "মমতাজউদদীন আহমদ"],
+    correctIndex: 0,
+    subject: "বাংলা",
+  },
+  {
+    id: "q7",
+    text: "log₂(32) = ?",
+    options: ["৩", "৪", "৫", "৬"],
+    correctIndex: 2,
+    subject: "গণিত",
+  },
+  {
+    id: "q8",
+    text: "The synonym of 'Abundant' is —",
+    options: ["Scarce", "Plentiful", "Rare", "Meager"],
+    correctIndex: 1,
+    subject: "English",
+  },
+  {
+    id: "q9",
+    text: "বাংলাদেশের বৃহত্তম নদী কোনটি?",
+    options: ["পদ্মা", "মেঘনা", "যমুনা", "ব্রহ্মপুত্র"],
+    correctIndex: 3,
+    subject: "সাধারণ জ্ঞান",
+  },
+  {
+    id: "q10",
+    text: "x² - 5x + 6 = 0 সমীকরণের মূলদ্বয় কত?",
+    options: ["১, ৬", "২, ৩", "-২, -৩", "১, ৫"],
+    correctIndex: 1,
+    subject: "গণিত",
+  },
+];
+
+const EXAM_DURATION = 15 * 60; // 15 minutes
+
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+/* ── Option labels ── */
+const optionLabels = ["ক", "খ", "গ", "ঘ"];
+
+/* ── Slide animation ── */
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+};
+
+export default function ExamRoom() {
+  const navigate = useNavigate();
+  const questions = MOCK_QUESTIONS;
+  const total = questions.length;
+
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [answers, setAnswers] = useState<AnswerState[]>(
+    () => questions.map(() => ({ selected: null, marked: false }))
+  );
+  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION);
+  const [dir, setDir] = useState(1);
+  const [showNav, setShowNav] = useState(false);
+  const [showExit, setShowExit] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Timer
+  useEffect(() => {
+    if (submitted) return;
+    const interval = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          handleSubmit();
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [submitted]);
+
+  const current = questions[currentIdx];
+  const answer = answers[currentIdx];
+
+  const selectOption = (optIdx: number) => {
+    if (submitted) return;
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[currentIdx] = { ...next[currentIdx], selected: optIdx };
+      return next;
+    });
+  };
+
+  const toggleMark = () => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[currentIdx] = { ...next[currentIdx], marked: !next[currentIdx].marked };
+      return next;
+    });
+  };
+
+  const goTo = useCallback(
+    (idx: number) => {
+      setDir(idx > currentIdx ? 1 : -1);
+      setCurrentIdx(idx);
+      setShowNav(false);
+    },
+    [currentIdx]
+  );
+
+  const goNext = () => {
+    if (currentIdx < total - 1) {
+      setDir(1);
+      setCurrentIdx((i) => i + 1);
+    }
+  };
+  const goPrev = () => {
+    if (currentIdx > 0) {
+      setDir(-1);
+      setCurrentIdx((i) => i - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+  };
+
+  // Stats
+  const stats = useMemo(() => {
+    const answered = answers.filter((a) => a.selected !== null).length;
+    const marked = answers.filter((a) => a.marked).length;
+    const unanswered = total - answered;
+    let correct = 0;
+    answers.forEach((a, i) => {
+      if (a.selected === questions[i].correctIndex) correct++;
+    });
+    return { answered, marked, unanswered, correct };
+  }, [answers, questions, total]);
+
+  const progressPercent = ((currentIdx + 1) / total) * 100;
+  const timeWarning = timeLeft < 120;
+  const timeCritical = timeLeft < 30;
+
+  // Result view
+  if (submitted) {
+    const score = Math.round((stats.correct / total) * 100);
+    return (
+      <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center">
+        <motion.div
+          className="w-full max-w-md mx-4 text-center space-y-6"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 15 }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", damping: 10 }}
+            className="mx-auto h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <CheckCircle className="h-12 w-12 text-primary" />
+          </motion.div>
+
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">পরীক্ষা সম্পন্ন! 🎉</h1>
+            <p className="text-muted-foreground mt-1">আপনার ফলাফল</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-primary/10 p-4">
+              <p className="text-3xl font-bold text-primary">{score}%</p>
+              <p className="text-xs text-muted-foreground">স্কোর</p>
+            </div>
+            <div className="rounded-xl bg-accent/10 p-4">
+              <p className="text-3xl font-bold text-accent-foreground">{stats.correct}/{total}</p>
+              <p className="text-xs text-muted-foreground">সঠিক উত্তর</p>
+            </div>
+            <div className="rounded-xl bg-muted p-4">
+              <p className="text-3xl font-bold text-foreground">{formatTime(EXAM_DURATION - timeLeft)}</p>
+              <p className="text-xs text-muted-foreground">সময় নিয়েছেন</p>
+            </div>
+            <div className="rounded-xl bg-muted p-4">
+              <p className="text-3xl font-bold text-foreground">{stats.unanswered}</p>
+              <p className="text-xs text-muted-foreground">উত্তর দেননি</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="flex-1 min-h-[48px]" onClick={() => navigate("/")}>
+              ড্যাশবোর্ড
+            </Button>
+            <Button className="flex-1 min-h-[48px]" onClick={() => navigate("/live-exam")}>
+              আরও পরীক্ষা
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-background flex flex-col">
+      {/* ── Top Bar: Timer + Progress ── */}
+      <header className="shrink-0 border-b bg-card/95 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          {/* Exit */}
+          <button
+            onClick={() => setShowExit(true)}
+            className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted transition-colors"
+          >
+            <X className="h-5 w-5 text-muted-foreground" />
+          </button>
+
+          {/* Timer */}
+          <div
+            className={cn(
+              "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-mono font-bold transition-colors",
+              timeCritical
+                ? "bg-destructive/15 text-destructive animate-pulse"
+                : timeWarning
+                  ? "bg-accent/15 text-accent-foreground"
+                  : "bg-muted text-foreground"
+            )}
+          >
+            <Clock className="h-4 w-4" />
+            {formatTime(timeLeft)}
+          </div>
+
+          {/* Question nav grid */}
+          <button
+            onClick={() => setShowNav(true)}
+            className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-muted transition-colors"
+          >
+            <Grid3X3 className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Progress bar */}
+        <Progress value={progressPercent} className="h-1 rounded-none" />
+      </header>
+
+      {/* ── Question Area ── */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-4 py-5">
+          <AnimatePresence mode="wait" custom={dir}>
+            <motion.div
+              key={currentIdx}
+              custom={dir}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              {/* Question number + mark */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-muted-foreground">
+                  প্রশ্ন {currentIdx + 1}/{total}
+                </span>
+                <button
+                  onClick={toggleMark}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all",
+                    answer.marked
+                      ? "bg-accent/20 text-accent-foreground"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Flag className={cn("h-3.5 w-3.5", answer.marked && "fill-accent text-accent")} />
+                  {answer.marked ? "চিহ্নিত" : "পরে দেখব"}
+                </button>
+              </div>
+
+              {/* Subject tag */}
+              <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary mb-3">
+                {current.subject}
+              </span>
+
+              {/* Question text */}
+              <h2 className="text-lg md:text-xl font-semibold text-foreground leading-relaxed mb-6">
+                {current.text}
+              </h2>
+
+              {/* Options */}
+              <div className="space-y-3">
+                {current.options.map((opt, optIdx) => {
+                  const isSelected = answer.selected === optIdx;
+                  return (
+                    <motion.button
+                      key={optIdx}
+                      onClick={() => selectOption(optIdx)}
+                      whileTap={{ scale: 0.98 }}
+                      className={cn(
+                        "w-full flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all",
+                        isSelected
+                          ? "border-primary bg-primary/8 shadow-sm"
+                          : "border-border hover:border-primary/40 hover:bg-muted/50"
+                      )}
+                    >
+                      {/* Label circle */}
+                      <span
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {optionLabels[optIdx]}
+                      </span>
+                      <span className={cn(
+                        "text-sm md:text-base leading-relaxed pt-1 font-medium",
+                        isSelected ? "text-foreground" : "text-foreground/80"
+                      )}>
+                        {opt}
+                      </span>
+                      {/* Check indicator */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="ml-auto shrink-0 pt-1"
+                        >
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
+
+      {/* ── Bottom Navigation ── */}
+      <footer className="shrink-0 border-t bg-card/95 backdrop-blur-sm">
+        <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
+          <Button
+            variant="ghost"
+            onClick={goPrev}
+            disabled={currentIdx === 0}
+            className="min-h-[48px] gap-1.5"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            পেছনে
+          </Button>
+
+          {currentIdx === total - 1 ? (
+            <Button
+              onClick={handleSubmit}
+              className="min-h-[48px] px-6 bg-primary text-primary-foreground font-semibold gap-1.5"
+            >
+              <CheckCircle className="h-4 w-4" />
+              জমা দিন
+            </Button>
+          ) : (
+            <Button
+              onClick={goNext}
+              className="min-h-[48px] px-6 gap-1.5"
+            >
+              পরবর্তী
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </footer>
+
+      {/* ── Question Navigation Grid ── */}
+      <Dialog open={showNav} onOpenChange={setShowNav}>
+        <DialogContent className="sm:max-w-[360px]">
+          <DialogTitle className="text-base font-semibold">প্রশ্ন নেভিগেশন</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground mb-2">
+            যেকোনো প্রশ্নে সরাসরি যান
+          </DialogDescription>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground mb-3">
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-primary" /> উত্তর দিয়েছেন</span>
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-accent/50" /> চিহ্নিত</span>
+            <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-muted border border-border" /> বাকি</span>
+          </div>
+
+          <div className="grid grid-cols-5 gap-2">
+            {questions.map((_, i) => {
+              const a = answers[i];
+              const isCurrent = i === currentIdx;
+              return (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={cn(
+                    "flex items-center justify-center h-11 w-full rounded-lg text-sm font-bold transition-all",
+                    isCurrent && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    a.marked
+                      ? "bg-accent/20 text-accent-foreground"
+                      : a.selected !== null
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Summary + Submit */}
+          <div className="flex items-center justify-between mt-4 pt-3 border-t text-xs text-muted-foreground">
+            <span>উত্তর: {stats.answered}/{total}</span>
+            <span>চিহ্নিত: {stats.marked}</span>
+          </div>
+          <Button
+            className="w-full mt-2 min-h-[44px] font-semibold"
+            onClick={() => { setShowNav(false); handleSubmit(); }}
+          >
+            <CheckCircle className="mr-1.5 h-4 w-4" />
+            পরীক্ষা জমা দিন
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Exit Confirmation ── */}
+      <Dialog open={showExit} onOpenChange={setShowExit}>
+        <DialogContent className="sm:max-w-[340px] text-center">
+          <DialogTitle className="sr-only">পরীক্ষা থেকে বের হন</DialogTitle>
+          <div className="flex flex-col items-center gap-3 py-2">
+            <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="h-7 w-7 text-destructive" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">পরীক্ষা ছেড়ে দিতে চান?</h2>
+            <p className="text-sm text-muted-foreground">
+              আপনার অগ্রগতি হারিয়ে যাবে। {stats.answered}/{total}টি প্রশ্নের উত্তর দিয়েছেন।
+            </p>
+            <div className="flex gap-3 w-full mt-2">
+              <Button
+                variant="outline"
+                className="flex-1 min-h-[44px]"
+                onClick={() => setShowExit(false)}
+              >
+                থাকব
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 min-h-[44px]"
+                onClick={() => navigate("/")}
+              >
+                বের হব
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

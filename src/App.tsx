@@ -15,6 +15,7 @@ import Subjects from "./pages/Subjects";
 import LiveExam from "./pages/LiveExam";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
+import ExamRoom from "./pages/ExamRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/landing" element={<Landing />} />
+            <Route path="/exam/:examId" element={<ExamRoom />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/subjects" element={<Subjects />} />
