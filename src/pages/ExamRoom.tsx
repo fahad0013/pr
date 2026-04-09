@@ -38,7 +38,7 @@ interface AnswerState {
   marked: boolean;
 }
 
-const EXAM_DURATION = 15 * 60; // 15 minutes
+const DEFAULT_EXAM_DURATION = 60 * 60; // 60 minutes default
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -68,7 +68,9 @@ export default function ExamRoom() {
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerState[]>([]);
-  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION);
+  const [examDuration, setExamDuration] = useState(DEFAULT_EXAM_DURATION);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_EXAM_DURATION);
+  const [testTitle, setTestTitle] = useState("পরীক্ষা");
   const [dir, setDir] = useState(1);
   const [showNav, setShowNav] = useState(false);
   const [showExit, setShowExit] = useState(false);
@@ -122,6 +124,21 @@ export default function ExamRoom() {
     } else {
       // Normal exam: load by test_id, optionally filter by subject
       const testId = examId || "1";
+
+      // Fetch test metadata for duration and title
+      const { data: testMeta } = await supabase
+        .from("tests")
+        .select("title, duration_minutes")
+        .eq("id", testId as any)
+        .single();
+
+      if (testMeta) {
+        const dur = ((testMeta as any).duration_minutes || 60) * 60;
+        setExamDuration(dur);
+        setTimeLeft(dur);
+        setTestTitle((testMeta as any).title || "পরীক্ষা");
+      }
+
       let query = supabase
         .from("questions")
         .select("*")
@@ -143,7 +160,6 @@ export default function ExamRoom() {
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
-        // Set time: 1 min per question for subject mode, default for full exam
         if (isSubjectMode) {
           setTimeLeft(Math.max(qs.length * 60, 5 * 60));
         }
@@ -203,7 +219,7 @@ export default function ExamRoom() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
-    const timeTaken = (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft;
+    const timeTaken = (isRevision ? Math.max(total * 60, 5 * 60) : examDuration) - timeLeft;
 
     if (user) {
       // Save mistakes (wrong answers) to DB
@@ -332,10 +348,10 @@ export default function ExamRoom() {
     }));
     navigate("/exam-result", {
       state: {
-        testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
+        testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : testTitle,
         questions: questionResults,
         timeTaken,
-        totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,
+        totalTime: isRevision ? Math.max(total * 60, 5 * 60) : examDuration,
         isRevision,
         testId: isRevision ? null : (Number(examId) || 1),
       },
