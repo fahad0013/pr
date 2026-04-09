@@ -119,7 +119,7 @@ export default function ExamRoom() {
       }
     } else {
       // Normal exam: load by test_id
-      const testId = examId || "bcs-mock-07";
+      const testId = examId || "primary-mock-01";
       const { data } = await supabase
         .from("questions")
         .select("*")
@@ -221,7 +221,7 @@ export default function ExamRoom() {
               mistakeInserts.push({
                 user_id: user.id,
                 question_id: q.id,
-                test_id: examId || "bcs-mock-07",
+                test_id: examId || "primary-mock-01",
                 subject: q.subject,
                 question_text: q.text,
                 correct_answer: q.options[q.correctIndex],
@@ -254,7 +254,7 @@ export default function ExamRoom() {
     }));
     navigate("/exam-result", {
       state: {
-        testName: isRevision ? "রিভিশন পরীক্ষা" : "BCS প্রিলি মক টেস্ট — ০৭",
+        testName: isRevision ? "রিভিশন পরীক্ষা" : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
         questions: questionResults,
         timeTaken: (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft,
         totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,

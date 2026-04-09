@@ -42,15 +42,13 @@ const userData = {
 };
 
 const lastTest = {
-  name: "BCS প্রিলি মক টেস্ট — ০৬",
+  name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
   progress: 60,
   questionsLeft: 16,
 };
 
 const newTests = [
-  { id: "1", name: "বাংলা সাহিত্য — সেট ১২", subject: "📚", questions: 30 },
-  { id: "2", name: "English Grammar — Set 08", subject: "🔤", questions: 25 },
-  { id: "3", name: "সাধারণ গণিত — সেট ০৫", subject: "🔢", questions: 30 },
+  { id: "primary-mock-01", name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১", subject: "🏫", questions: 80 },
 ];
 
 const leaderboard = [
@@ -240,7 +238,7 @@ export default function Index() {
                   <p className="text-sm font-semibold text-foreground truncate">{test.name}</p>
                   <p className="text-xs text-muted-foreground">{test.questions} প্রশ্ন</p>
                 </div>
-                <Button size="sm" className="shrink-0 gap-1 min-h-[36px]" onClick={(e) => { e.stopPropagation(); requireAuth(); }}>
+                <Button size="sm" className="shrink-0 gap-1 min-h-[36px]" onClick={(e) => { e.stopPropagation(); if (user) navigate(`/exam/${test.id}`); else requireAuth(); }}>
                   শুরু
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
@@ -353,7 +351,7 @@ export default function Index() {
               </div>
               <div className="flex-1">
                 <p className="text-[11px] font-semibold text-accent uppercase tracking-wide">🔴 লাইভ চলছে</p>
-                <p className="font-semibold text-foreground">BCS প্রিলি মক টেস্ট — ০৭</p>
+                <p className="font-semibold text-foreground">প্রাথমিক শিক্ষক মক টেস্ট — ০১</p>
                 <p className="text-xs text-muted-foreground">২৩৪ জন অংশগ্রহণ করছে</p>
               </div>
               <ArrowRight className="h-5 w-5 text-accent" />
