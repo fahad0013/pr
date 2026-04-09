@@ -43,8 +43,10 @@ interface QuestionResult {
 interface ExamResultData {
   testName: string;
   questions: QuestionResult[];
-  timeTaken: number; // seconds
-  totalTime: number; // seconds
+  timeTaken: number;
+  totalTime: number;
+  testId?: number | null;
+  isRevision?: boolean;
 }
 
 /* ── Helpers ── */
