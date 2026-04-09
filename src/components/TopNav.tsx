@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { to: "/", icon: Home, label: "হোম" },
+  { to: "/dashboard", icon: Home, label: "হোম" },
   { to: "/subjects", icon: BookOpen, label: "বিষয়" },
   { to: "/live-exam", icon: Radio, label: "লাইভ পরীক্ষা" },
   { to: "/leaderboard", icon: Trophy, label: "লিডারবোর্ড" },
