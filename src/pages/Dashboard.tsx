@@ -84,6 +84,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
 
+  const { badges, newBadge, dismissCelebration, checkAndAward } = useBadges();
+
   useEffect(() => {
     if (!user) return;
     loadDashboard();
