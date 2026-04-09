@@ -55,11 +55,11 @@ export default function SubjectSets() {
     setLoading(true);
 
     // Fetch tests with matching subject_category and test_type='subject'
-    const { data: tests } = await supabase
+    const { data: tests } = await (supabase
       .from("tests")
-      .select("id, title")
-      .eq("test_type" as any, "subject")
-      .eq("subject_category" as any, decodedSubject)
+      .select("id, title") as any)
+      .eq("test_type", "subject")
+      .eq("subject_category", decodedSubject)
       .order("id");
 
     if (!tests || tests.length === 0) {

@@ -57,10 +57,10 @@ export default function Subjects() {
     setLoading(true);
 
     // Fetch subject-type tests grouped by subject_category
-    const { data: tests } = await supabase
+    const { data: tests } = await (supabase
       .from("tests")
-      .select("id, subject_category")
-      .eq("test_type" as any, "subject");
+      .select("id, subject_category") as any)
+      .eq("test_type", "subject");
 
     if (!tests || tests.length === 0) {
       setSubjects([]);
