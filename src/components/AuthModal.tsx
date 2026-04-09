@@ -52,7 +52,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setError("");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: window.location.origin,
+      },
     });
     if (error) {
       setError(error.message);
