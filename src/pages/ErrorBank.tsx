@@ -11,9 +11,9 @@ import { BookX, RotateCcw, Loader2, Trash2, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MistakeRow {
-  id: string;
-  question_id: string;
-  test_id: string;
+  id: number;
+  question_id: number;
+  test_id: number;
   subject: string | null;
   question_text: string | null;
   correct_answer: string | null;
