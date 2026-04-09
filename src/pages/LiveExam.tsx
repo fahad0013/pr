@@ -10,7 +10,7 @@ import { LoginPromptModal } from "@/components/LoginPromptModal";
 
 const liveExams = [
   {
-    id: "primary-mock-01",
+    id: "1",
     title: "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
     status: "live" as const,
     participants: 234,

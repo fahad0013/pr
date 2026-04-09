@@ -26,7 +26,7 @@ const userData = {
 const lastTest = { name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১", progress: 60, questionsLeft: 16 };
 
 const newTests = [
-  { id: "primary-mock-01", name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১", subject: "🏫", questions: 80 },
+  { id: "1", name: "প্রাথমিক শিক্ষক মক টেস্ট — ০১", subject: "🏫", questions: 80 },
 ];
 
 const leaderboard = [

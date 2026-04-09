@@ -109,7 +109,7 @@ export default function Subjects() {
       setLoginPrompt(true);
       return;
     }
-    navigate(`/exam/primary-mock-01?subject=${encodeURIComponent(subject)}`);
+    navigate(`/exam/1?subject=${encodeURIComponent(subject)}`);
   };
 
   return (

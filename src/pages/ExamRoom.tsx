@@ -87,7 +87,7 @@ export default function ExamRoom() {
       let mistakeQuery = supabase
         .from("mistakes")
         .select("question_id")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id) as any;
 
       if (revisionSubject) {
         mistakeQuery = mistakeQuery.eq("subject", revisionSubject);
@@ -121,7 +121,7 @@ export default function ExamRoom() {
       }
     } else {
       // Normal exam: load by test_id, optionally filter by subject
-      const testId = examId || "primary-mock-01";
+      const testId = examId || "1";
       let query = supabase
         .from("questions")
         .select("*")
