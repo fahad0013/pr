@@ -456,6 +456,27 @@ export default function Dashboard() {
           <Card className="card-shadow">
             <CardContent className="p-4">
               <RadarChart data={data.radarData} />
+              {/* Subject bar chart */}
+              <div className="mt-4 space-y-2.5 border-t pt-3">
+                {data.radarData.map((d) => {
+                  const color = d.score >= 70 ? "bg-primary" : d.score >= 40 ? "bg-accent" : "bg-destructive";
+                  const textColor = d.score >= 70 ? "text-primary" : d.score >= 40 ? "text-accent-foreground" : "text-destructive";
+                  return (
+                    <div key={d.subject} className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-foreground w-20 truncate">{d.subject}</span>
+                      <div className="flex-1 h-3 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={cn("h-full rounded-full transition-all duration-700", color)}
+                          style={{ width: `${d.score}%` }}
+                        />
+                      </div>
+                      <span className={cn("text-xs font-bold w-10 text-right", textColor)}>
+                        {d.score}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </motion.section>
