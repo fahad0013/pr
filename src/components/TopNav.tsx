@@ -1,12 +1,19 @@
-import { Home, BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn } from "lucide-react";
+import { Home, BookOpen, Radio, Trophy, User, Moon, Sun, Flame, LogIn, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/AuthModal";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { to: "/", icon: Home, label: "হোম" },
@@ -18,9 +25,50 @@ const navItems = [
 
 export function TopNav() {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [authOpen, setAuthOpen] = useState(false);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setProfileAvatar(null);
+      setProfileName(null);
+      return;
+    }
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url, display_name")
+        .eq("user_id", user.id)
+        .single();
+      if (data) {
+        setProfileAvatar(data.avatar_url || user.user_metadata?.avatar_url || null);
+        setProfileName(data.display_name || user.user_metadata?.full_name || null);
+      }
+    };
+    fetchProfile();
+
+    // Listen for profile changes
+    const channel = supabase
+      .channel("profile-changes")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `user_id=eq.${user.id}` }, (payload) => {
+        const p = payload.new as any;
+        setProfileAvatar(p.avatar_url || null);
+        setProfileName(p.display_name || null);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/landing");
+  };
+
+  const initial = (profileName || user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase();
 
   return (
     <>
@@ -63,14 +111,28 @@ export function TopNav() {
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
             {user ? (
-              <button onClick={() => navigate("/profile")} className="rounded-full">
-                <Avatar className="h-9 w-9 border-2 border-primary/20">
-                  <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                    {(user.user_metadata?.full_name || user.email || "U").charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <Avatar className="h-9 w-9 border-2 border-primary/20">
+                      <AvatarImage src={profileAvatar || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                        {initial}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    আমার প্রোফাইল
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    লগআউট
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setAuthOpen(true)}>
                 <LogIn className="mr-1.5 h-4 w-4" />
