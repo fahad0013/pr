@@ -306,6 +306,7 @@ export default function Leaderboard() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold leading-tight">
                         {u.name} {user && u.userId === user.id && "(আপনি)"}
+                        <BadgeIcon type={userBadges[u.userId]} />
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {u.district ? `${u.district} · ` : ""}{u.exams} পরীক্ষা
