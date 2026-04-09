@@ -1,0 +1,1 @@
+DELETE FROM public.questions WHERE category IS NULL AND test_id IN (7, 8);

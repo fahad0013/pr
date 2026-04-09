@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2, CheckCircle, XCircle, Lock } from "lucide-react";
+import { Upload, Loader2, CheckCircle, XCircle, Lock, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,11 +16,19 @@ interface SeedLog {
   message: string;
 }
 
+interface ParsedFile {
+  file: File;
+  questions: any[];
+  categoryBreakdown: Record<string, number>;
+  missingCategory: boolean;
+}
+
 export default function Seed() {
   const { user } = useAuth();
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [seeding, setSeeding] = useState(false);
@@ -37,11 +45,36 @@ export default function Seed() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const selected = Array.from(e.target.files);
+    setFiles(selected);
+
+    // Parse and validate files immediately
+    const parsed: ParsedFile[] = [];
+    for (const file of selected) {
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data) || data.length === 0) {
+          parsed.push({ file, questions: [], categoryBreakdown: {}, missingCategory: true });
+          continue;
+        }
+        const missingCategory = data.some((q: any) => !q.category);
+        const categoryBreakdown: Record<string, number> = {};
+        data.forEach((q: any) => {
+          const cat = q.category || "(খালি)";
+          categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
+        });
+        parsed.push({ file, questions: data, categoryBreakdown, missingCategory });
+      } catch {
+        parsed.push({ file, questions: [], categoryBreakdown: {}, missingCategory: true });
+      }
     }
+    setParsedFiles(parsed);
   };
+
+  const hasValidationErrors = parsedFiles.some((p) => p.missingCategory || p.questions.length === 0);
 
   const seedFiles = async () => {
     if (!user) {
@@ -54,6 +87,11 @@ export default function Seed() {
     }
     if (files.length === 0) {
       toast.error("কোনো ফাইল নির্বাচন করা হয়নি");
+      return;
+    }
+
+    if (hasValidationErrors) {
+      toast.error("কিছু ফাইলে category ফিল্ড নেই। আপলোড বাতিল।");
       return;
     }
 
@@ -209,9 +247,56 @@ export default function Seed() {
             )}
           </div>
 
+          {/* Category Preview */}
+          {parsedFiles.length > 0 && (
+            <div className="space-y-2">
+              {parsedFiles.map((pf, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-md text-sm ${
+                    pf.missingCategory || pf.questions.length === 0
+                      ? "bg-destructive/10 border border-destructive/30"
+                      : "bg-primary/10 border border-primary/30"
+                  }`}
+                >
+                  <div className="font-medium flex items-center gap-1.5 mb-1">
+                    {pf.missingCategory || pf.questions.length === 0 ? (
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                    )}
+                    {pf.file.name} — {pf.questions.length} প্রশ্ন
+                  </div>
+                  {pf.missingCategory && pf.questions.length > 0 && (
+                    <p className="text-destructive text-xs">⚠️ কিছু প্রশ্নে category ফিল্ড নেই</p>
+                  )}
+                  {pf.questions.length === 0 && (
+                    <p className="text-destructive text-xs">⚠️ ফাইলটি পার্স করা যায়নি বা খালি</p>
+                  )}
+                  {Object.keys(pf.categoryBreakdown).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {Object.entries(pf.categoryBreakdown).map(([cat, count]) => (
+                        <span
+                          key={cat}
+                          className={`px-2 py-0.5 rounded-full text-xs ${
+                            cat === "(খালি)"
+                              ? "bg-destructive/20 text-destructive"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {cat}: {count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           <Button
             onClick={seedFiles}
-            disabled={seeding || files.length === 0 || !title.trim()}
+            disabled={seeding || hasValidationErrors || files.length === 0 || !title.trim()}
             className="w-full min-h-[44px] font-semibold"
           >
             {seeding ? (
