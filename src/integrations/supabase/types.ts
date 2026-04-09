@@ -14,14 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      mistakes: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          id: string
+          question_id: string
+          question_text: string | null
+          subject: string | null
+          test_id: string
+          user_answer: string | null
+          user_id: string
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          question_id: string
+          question_text?: string | null
+          subject?: string | null
+          test_id: string
+          user_answer?: string | null
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          question_id?: string
+          question_text?: string | null
+          subject?: string | null
+          test_id?: string
+          user_answer?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
+          daily_goal_minutes: number
           display_name: string | null
+          district: string | null
           exams_completed: number
           id: string
+          institution: string | null
+          last_activity_date: string | null
+          onboarding_completed: boolean
+          role: string | null
           streak_count: number
+          subject_interest: string[] | null
           total_score: number
           updated_at: string
           user_id: string
@@ -29,10 +72,17 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          daily_goal_minutes?: number
           display_name?: string | null
+          district?: string | null
           exams_completed?: number
           id?: string
+          institution?: string | null
+          last_activity_date?: string | null
+          onboarding_completed?: boolean
+          role?: string | null
           streak_count?: number
+          subject_interest?: string[] | null
           total_score?: number
           updated_at?: string
           user_id: string
@@ -40,12 +90,58 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          daily_goal_minutes?: number
           display_name?: string | null
+          district?: string | null
           exams_completed?: number
           id?: string
+          institution?: string | null
+          last_activity_date?: string | null
+          onboarding_completed?: boolean
+          role?: string | null
           streak_count?: number
+          subject_interest?: string[] | null
           total_score?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      results: {
+        Row: {
+          correct_answers: number
+          created_at: string
+          id: string
+          rank_in_test: number | null
+          score: number
+          subject_scores: Json | null
+          test_id: string
+          time_taken: number | null
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          correct_answers?: number
+          created_at?: string
+          id?: string
+          rank_in_test?: number | null
+          score?: number
+          subject_scores?: Json | null
+          test_id: string
+          time_taken?: number | null
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          correct_answers?: number
+          created_at?: string
+          id?: string
+          rank_in_test?: number | null
+          score?: number
+          subject_scores?: Json | null
+          test_id?: string
+          time_taken?: number | null
+          total_questions?: number
           user_id?: string
         }
         Relationships: []

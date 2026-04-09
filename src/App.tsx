@@ -1,10 +1,14 @@
+import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Outlet } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Layout } from "@/components/Layout";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
+import { StreakLevelUp } from "@/components/StreakLevelUp";
+import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Subjects from "./pages/Subjects";
@@ -15,11 +19,49 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function OnboardingGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checkDone, setCheckDone] = useState(false);
+
+  useEffect(() => {
+    if (loading || !user) {
+      setCheckDone(true);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data && !data.onboarding_completed) {
+          setShowOnboarding(true);
+        }
+        setCheckDone(true);
+      });
+  }, [user, loading]);
+
+  if (!checkDone) return null;
+
+  return (
+    <>
+      <OnboardingFlow
+        open={showOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+      />
+      {children}
+    </>
+  );
+}
+
 function AppLayout() {
   return (
-    <Layout>
-      <Outlet />
-    </Layout>
+    <OnboardingGate>
+      <Layout>
+        <Outlet />
+      </Layout>
+    </OnboardingGate>
   );
 }
 
