@@ -77,6 +77,7 @@ const App = () => (
           <Routes>
             <Route path="/landing" element={<Landing />} />
             <Route path="/exam/:examId" element={<ExamRoom />} />
+            <Route path="/exam-result" element={<ExamResult />} />
             <Route element={<AppLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/subjects" element={<Subjects />} />
