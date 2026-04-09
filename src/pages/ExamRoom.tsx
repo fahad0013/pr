@@ -87,7 +87,7 @@ export default function ExamRoom() {
   // Load questions from Supabase
   useEffect(() => {
     loadQuestions();
-  }, [examId, isRevision, subjectFilter, setNumber]);
+  }, [examId, isRevision, subjectFilter]);
 
   const loadQuestions = async () => {
     setLoading(true);
@@ -127,39 +127,10 @@ export default function ExamRoom() {
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
-        setTimeLeft(Math.max(qs.length * 60, 5 * 60)); // 1 min per question, min 5 min
-      }
-    } else if (isSetMode && subjectFilter && setNumber) {
-      // Set mode: fetch all questions for this subject, pick the right 20
-      const variants = subjectVariantsMap[subjectFilter] || [subjectFilter];
-      const { data } = await supabase
-        .from("questions")
-        .select("*")
-        .in("subject", variants as any)
-        .order("id");
-
-      if (data && data.length > 0) {
-        const startIdx = (setNumber - 1) * 20;
-        const sliced = (data as any[]).slice(startIdx, startIdx + 20);
-
-        if (sliced.length > 0) {
-          const qs: Question[] = sliced.map((q: any) => ({
-            id: String(q.id),
-            text: q.question_text,
-            options: Array.isArray(q.options) ? q.options as string[] : JSON.parse(q.options as string),
-            correctIndex: q.options.indexOf(q.correct_answer),
-            subject: q.subject || q.category || "",
-          }));
-          setQuestions(qs);
-          setAnswers(qs.map(() => ({ selected: null, marked: false })));
-          const dur = 20 * 60; // 20 minutes for 20 questions
-          setExamDuration(dur);
-          setTimeLeft(dur);
-          setTestTitle(`${subjectFilter} সেট ${setNumber}`);
-        }
+        setTimeLeft(Math.max(qs.length * 60, 5 * 60));
       }
     } else {
-      // Normal exam: load by test_id, optionally filter by subject
+      // Normal exam: load by test_id, optionally filter by category for subject sets
       const testId = examId || "1";
 
       // Fetch test metadata for duration and title
@@ -181,8 +152,10 @@ export default function ExamRoom() {
         .select("*")
         .eq("test_id", testId as any);
 
+      // If subject filter is present, filter by category (with variants)
       if (subjectFilter) {
-        query = query.eq("subject", subjectFilter as any);
+        const variants = subjectVariantsMap[subjectFilter] || [subjectFilter];
+        query = query.in("category", variants as any);
       }
 
       const { data } = await query;
@@ -198,7 +171,11 @@ export default function ExamRoom() {
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
         if (isSubjectMode) {
-          setTimeLeft(Math.max(qs.length * 60, 5 * 60));
+          // For subject sets: 1 min per question, min 5 min
+          const dur = Math.max(qs.length * 60, 5 * 60);
+          setExamDuration(dur);
+          setTimeLeft(dur);
+          setTestTitle(`${subjectFilter} — মিনি টেস্ট`);
         }
       }
     }
