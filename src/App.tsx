@@ -10,7 +10,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { StreakLevelUp } from "@/components/StreakLevelUp";
 import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
-import Index from "./pages/Index";
+// Index removed — dashboard merged into Profile
 import Subjects from "./pages/Subjects";
 import LiveExam from "./pages/LiveExam";
 import Leaderboard from "./pages/Leaderboard";
