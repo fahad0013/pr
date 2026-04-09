@@ -26,6 +26,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { useBadges } from "@/hooks/useBadges";
+import { BadgeDisplay } from "@/components/BadgeDisplay";
+import { BadgeCelebration } from "@/components/BadgeCelebration";
 
 const container = {
   hidden: { opacity: 0 },
