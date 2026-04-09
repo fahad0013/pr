@@ -44,23 +44,20 @@ export function useBadges() {
 
     // Check Gold first (highest priority for celebration)
     if (!existingBadges.has("gold") && (streak >= 30 || highScoreCount70 >= 10)) {
-      await supabase.from("badges" as any).insert({ user_id: user.id, badge_type: "gold" } as any);
-      setNewBadge("gold");
-      await fetchBadges();
+      const { error } = await supabase.rpc("award_badge", { p_user_id: user.id, p_badge_type: "gold" });
+      if (!error) { setNewBadge("gold"); await fetchBadges(); }
       return;
     }
 
     if (!existingBadges.has("silver") && (streak >= 10 || highScoreCount50 >= 5)) {
-      await supabase.from("badges" as any).insert({ user_id: user.id, badge_type: "silver" } as any);
-      setNewBadge("silver");
-      await fetchBadges();
+      const { error } = await supabase.rpc("award_badge", { p_user_id: user.id, p_badge_type: "silver" });
+      if (!error) { setNewBadge("silver"); await fetchBadges(); }
       return;
     }
 
     if (!existingBadges.has("bronze") && streak >= 3) {
-      await supabase.from("badges" as any).insert({ user_id: user.id, badge_type: "bronze" } as any);
-      setNewBadge("bronze");
-      await fetchBadges();
+      const { error } = await supabase.rpc("award_badge", { p_user_id: user.id, p_badge_type: "bronze" });
+      if (!error) { setNewBadge("bronze"); await fetchBadges(); }
       return;
     }
   }, [user, fetchBadges]);
