@@ -247,7 +247,53 @@ export default function Seed() {
             )}
           </div>
 
-          <Button
+          {/* Category Preview */}
+          {parsedFiles.length > 0 && (
+            <div className="space-y-2">
+              {parsedFiles.map((pf, i) => (
+                <div
+                  key={i}
+                  className={`p-3 rounded-md text-sm ${
+                    pf.missingCategory || pf.questions.length === 0
+                      ? "bg-destructive/10 border border-destructive/30"
+                      : "bg-primary/10 border border-primary/30"
+                  }`}
+                >
+                  <div className="font-medium flex items-center gap-1.5 mb-1">
+                    {pf.missingCategory || pf.questions.length === 0 ? (
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                    )}
+                    {pf.file.name} — {pf.questions.length} প্রশ্ন
+                  </div>
+                  {pf.missingCategory && pf.questions.length > 0 && (
+                    <p className="text-destructive text-xs">⚠️ কিছু প্রশ্নে category ফিল্ড নেই</p>
+                  )}
+                  {pf.questions.length === 0 && (
+                    <p className="text-destructive text-xs">⚠️ ফাইলটি পার্স করা যায়নি বা খালি</p>
+                  )}
+                  {Object.keys(pf.categoryBreakdown).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {Object.entries(pf.categoryBreakdown).map(([cat, count]) => (
+                        <span
+                          key={cat}
+                          className={`px-2 py-0.5 rounded-full text-xs ${
+                            cat === "(খালি)"
+                              ? "bg-destructive/20 text-destructive"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {cat}: {count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
             onClick={seedFiles}
             disabled={seeding || files.length === 0 || !title.trim()}
             className="w-full min-h-[44px] font-semibold"
