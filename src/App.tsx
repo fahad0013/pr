@@ -76,11 +76,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/exam/:examId" element={<ExamRoom />} />
             <Route path="/exam-result" element={<ExamResult />} />
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/subjects" element={<Subjects />} />
               <Route path="/live-exam" element={<LiveExam />} />
               <Route path="/leaderboard" element={<Leaderboard />} />

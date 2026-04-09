@@ -53,7 +53,7 @@ export default function Landing() {
 
   const handleStartTest = () => {
     if (user) {
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } else {
       setAuthOpen(true);
     }
