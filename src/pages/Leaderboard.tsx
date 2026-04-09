@@ -53,6 +53,7 @@ export default function Leaderboard() {
   const [tests, setTests] = useState<{ id: number; title: string }[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
   const [myScore, setMyScore] = useState(0);
+  const [userBadges, setUserBadges] = useState<Record<string, BadgeType | null>>({});
 
   useEffect(() => {
     loadData();
