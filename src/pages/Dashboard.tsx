@@ -24,6 +24,7 @@ import { RadarChart } from "@/components/RadarChart";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 const container = {
@@ -90,7 +91,7 @@ export default function Dashboard() {
     setLoading(true);
 
     // Parallel queries
-    const [profileRes, resultsRes, mistakesRes, testsRes, leaderboardRes] =
+    const [profileRes, resultsRes, mistakesRes, testsRes, leaderboardRes, dailyRes] =
       await Promise.all([
         supabase
           .from("profiles")
@@ -111,6 +112,12 @@ export default function Dashboard() {
         supabase
           .from("results")
           .select("user_id, total_score"),
+        supabase
+          .from("daily_activity" as any)
+          .select("minutes_spent, tests_completed")
+          .eq("user_id", user.id)
+          .eq("activity_date", new Date().toISOString().split("T")[0])
+          .single(),
       ]);
 
     const profile = profileRes.data;
@@ -226,7 +233,7 @@ export default function Dashboard() {
         profile?.avatar_url || user.user_metadata?.avatar_url || null,
       streak: profile?.current_streak || 0,
       dailyGoal: profile?.daily_goal_minutes || 60,
-      dailyDone: Math.min(totalTests * 15, profile?.daily_goal_minutes || 60), // estimate
+      dailyDone: (dailyRes.data as any)?.minutes_spent || 0,
       totalTests,
       accuracy,
       totalScore: Math.round(totalScoreSum),
@@ -450,6 +457,27 @@ export default function Dashboard() {
           <Card className="card-shadow">
             <CardContent className="p-4">
               <RadarChart data={data.radarData} />
+              {/* Subject bar chart */}
+              <div className="mt-4 space-y-2.5 border-t pt-3">
+                {data.radarData.map((d) => {
+                  const color = d.score >= 70 ? "bg-primary" : d.score >= 40 ? "bg-accent" : "bg-destructive";
+                  const textColor = d.score >= 70 ? "text-primary" : d.score >= 40 ? "text-accent-foreground" : "text-destructive";
+                  return (
+                    <div key={d.subject} className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-foreground w-20 truncate">{d.subject}</span>
+                      <div className="flex-1 h-3 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={cn("h-full rounded-full transition-all duration-700", color)}
+                          style={{ width: `${d.score}%` }}
+                        />
+                      </div>
+                      <span className={cn("text-xs font-bold w-10 text-right", textColor)}>
+                        {d.score}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </motion.section>

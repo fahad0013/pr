@@ -203,22 +203,28 @@ export default function ExamRoom() {
 
   const handleSubmit = async () => {
     setSubmitted(true);
+    const timeTaken = (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft;
 
     if (user) {
       // Save mistakes (wrong answers) to DB
       const mistakeInserts: any[] = [];
-
-      // For revision mode: delete correctly answered mistakes
       const correctQuestionIds: string[] = [];
+      let correctCount = 0;
+      let wrongCount = 0;
+      const subjectScores: Record<string, { correct: number; total: number }> = {};
 
       questions.forEach((q, i) => {
         const a = answers[i];
+        if (!subjectScores[q.subject]) subjectScores[q.subject] = { correct: 0, total: 0 };
+        subjectScores[q.subject].total++;
+
         if (a.selected !== null) {
           if (a.selected === q.correctIndex) {
-            if (isRevision) {
-              correctQuestionIds.push(q.id);
-            }
+            correctCount++;
+            subjectScores[q.subject].correct++;
+            if (isRevision) correctQuestionIds.push(q.id);
           } else {
+            wrongCount++;
             if (!isRevision) {
               mistakeInserts.push({
                 user_id: user.id,
@@ -247,6 +253,76 @@ export default function ExamRoom() {
           .eq("user_id", user.id)
           .in("question_id", correctQuestionIds.map(Number));
       }
+
+      // Save result (non-revision only)
+      if (!isRevision) {
+        const totalScore = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+        await supabase.from("results").insert({
+          user_id: user.id,
+          test_id: Number(examId) || 1,
+          correct_count: correctCount,
+          wrong_count: wrongCount,
+          total_score: totalScore,
+          time_taken: Math.round(timeTaken),
+          subject_scores: subjectScores,
+        } as any);
+      }
+
+      // Update daily activity
+      const today = new Date().toISOString().split("T")[0];
+      const minutesSpent = Math.round(timeTaken / 60);
+      const { data: existing } = await supabase
+        .from("daily_activity" as any)
+        .select("id, minutes_spent, tests_completed")
+        .eq("user_id", user.id)
+        .eq("activity_date", today)
+        .single();
+
+      if (existing) {
+        await supabase
+          .from("daily_activity" as any)
+          .update({
+            minutes_spent: (existing as any).minutes_spent + minutesSpent,
+            tests_completed: (existing as any).tests_completed + 1,
+          } as any)
+          .eq("id", (existing as any).id);
+      } else {
+        await supabase.from("daily_activity" as any).insert({
+          user_id: user.id,
+          activity_date: today,
+          minutes_spent: minutesSpent,
+          tests_completed: 1,
+        } as any);
+      }
+
+      // Update streak
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("last_activity_date, current_streak")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        const lastDate = profile.last_activity_date;
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+        let newStreak = 1;
+        if (lastDate === today) {
+          newStreak = profile.current_streak || 1;
+        } else if (lastDate === yesterdayStr) {
+          newStreak = (profile.current_streak || 0) + 1;
+        }
+
+        await supabase
+          .from("profiles")
+          .update({
+            current_streak: newStreak,
+            last_activity_date: today,
+          } as any)
+          .eq("id", user.id);
+      }
     }
 
     // Navigate to results
@@ -258,9 +334,10 @@ export default function ExamRoom() {
       state: {
         testName: isRevision ? "রিভিশন পরীক্ষা" : isSubjectMode ? `${subjectFilter} — মিনি টেস্ট` : "প্রাথমিক শিক্ষক মক টেস্ট — ০১",
         questions: questionResults,
-        timeTaken: (isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION) - timeLeft,
+        timeTaken,
         totalTime: isRevision ? Math.max(total * 60, 5 * 60) : EXAM_DURATION,
         isRevision,
+        testId: isRevision ? null : (Number(examId) || 1),
       },
     });
   };

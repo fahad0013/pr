@@ -1,7 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { generateResultPDF } from "@/utils/generateResultPDF";
 import {
   CheckCircle,
   XCircle,
@@ -18,6 +21,7 @@ import {
   Lightbulb,
   Star,
   Target,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,8 +43,10 @@ interface QuestionResult {
 interface ExamResultData {
   testName: string;
   questions: QuestionResult[];
-  timeTaken: number; // seconds
-  totalTime: number; // seconds
+  timeTaken: number;
+  totalTime: number;
+  testId?: number | null;
+  isRevision?: boolean;
 }
 
 /* ── Helpers ── */
@@ -80,28 +86,43 @@ export default function ExamResult() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const data = location.state as ExamResultData | undefined;
+  const [realRank, setRealRank] = useState<number | null>(null);
 
-  // Fallback mock data if navigated directly
-  const result: ExamResultData = data || {
-    testName: "BCS প্রিলি মক টেস্ট — ০৬",
-    timeTaken: 8 * 60 + 32,
-    totalTime: 15 * 60,
-    questions: [
-      { id: "q1", text: "'সোনার তরী' কবিতাটি কোন কবির লেখা?", options: ["কাজী নজরুল ইসলাম", "রবীন্দ্রনাথ ঠাকুর", "জীবনানন্দ দাশ", "মাইকেল মধুসূদন দত্ত"], correctIndex: 1, selected: 1, subject: "বাংলা" },
-      { id: "q2", text: "বাংলাদেশের জাতীয় সংসদ ভবনের স্থপতি কে?", options: ["লুই আই কান", "এফ আর খান", "মাজহারুল ইসলাম", "জন বেচটেল"], correctIndex: 0, selected: 2, subject: "সাধারণ জ্ঞান" },
-      { id: "q3", text: "Which one is correct?", options: ["He come here yesterday", "He came here yesterday", "He has come here yesterday", "He was come here yesterday"], correctIndex: 1, selected: 1, subject: "English" },
-      { id: "q4", text: "একটি ত্রিভুজের তিন বাহুর দৈর্ঘ্য ৩, ৪ ও ৫ হলে ত্রিভুজটির ক্ষেত্রফল কত?", options: ["৫", "৬", "৭.৫", "১০"], correctIndex: 1, selected: 1, subject: "গণিত" },
-      { id: "q5", text: "বাংলাদেশের স্বাধীনতা দিবস কত তারিখে?", options: ["১৬ ডিসেম্বর", "২৬ মার্চ", "২১ ফেব্রুয়ারি", "১৭ মার্চ"], correctIndex: 1, selected: 0, subject: "সাধারণ জ্ঞান" },
-      { id: "q6", text: "'কবর' নাটকটি কার রচনা?", options: ["মুনীর চৌধুরী", "সৈয়দ ওয়ালীউল্লাহ", "সেলিম আল দীন", "মমতাজউদদীন আহমদ"], correctIndex: 0, selected: 0, subject: "বাংলা" },
-      { id: "q7", text: "log₂(32) = ?", options: ["৩", "৪", "৫", "৬"], correctIndex: 2, selected: 2, subject: "গণিত" },
-      { id: "q8", text: "The synonym of 'Abundant' is —", options: ["Scarce", "Plentiful", "Rare", "Meager"], correctIndex: 1, selected: 3, subject: "English" },
-      { id: "q9", text: "বাংলাদেশের বৃহত্তম নদী কোনটি?", options: ["পদ্মা", "মেঘনা", "যমুনা", "ব্রহ্মপুত্র"], correctIndex: 3, selected: 3, subject: "সাধারণ জ্ঞান" },
-      { id: "q10", text: "x² - 5x + 6 = 0 সমীকরণের মূলদ্বয় কত?", options: ["১, ৬", "২, ৩", "-২, -৩", "১, ৫"], correctIndex: 1, selected: null, subject: "গণিত" },
-    ],
-  };
+  // Redirect if no data
+  useEffect(() => {
+    if (!data) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [data, navigate]);
 
-  const { questions, timeTaken, totalTime, testName } = result;
+  // Calculate real rank for this test
+  useEffect(() => {
+    if (!data?.testId || !user) return;
+    const fetchRank = async () => {
+      const { data: results } = await supabase
+        .from("results")
+        .select("user_id, total_score")
+        .eq("test_id", data.testId as any);
+      if (!results) return;
+      const userBest: Record<string, number> = {};
+      results.forEach((r: any) => {
+        if (r.user_id) {
+          userBest[r.user_id] = Math.max(userBest[r.user_id] || 0, Number(r.total_score || 0));
+        }
+      });
+      const sorted = Object.entries(userBest).sort(([, a], [, b]) => b - a);
+      const myIdx = sorted.findIndex(([id]) => id === user.id);
+      if (myIdx >= 0) setRealRank(myIdx + 1);
+    };
+    fetchRank();
+  }, [data?.testId, user]);
+
+  const questions = data?.questions || [];
+  const timeTaken = data?.timeTaken || 0;
+  const totalTime = data?.totalTime || 0;
+  const testName = data?.testName || "";
   const total = questions.length;
 
   // Stats computation
@@ -145,7 +166,21 @@ export default function ExamResult() {
 
   const perf = getPerformanceMessage(stats.scorePercent);
   const xpEarned = getXpEarned(stats.scorePercent, total);
-  const mockRank = stats.scorePercent >= 60 ? Math.max(1, 50 - Math.floor(stats.scorePercent / 3)) : null;
+
+  const handleDownloadPDF = () => {
+    generateResultPDF({
+      testName,
+      questions,
+      timeTaken,
+      totalTime,
+      scorePercent: stats.scorePercent,
+      correct: stats.correct,
+      wrong: stats.wrong,
+      skipped: stats.skipped,
+    });
+  };
+
+  if (!data) return null;
 
   return (
     <motion.div
@@ -217,10 +252,10 @@ export default function ExamResult() {
               <Zap className="h-4 w-4 text-accent" />
               +{xpEarned} XP
             </div>
-            {mockRank && (
+            {realRank && (
               <div className="flex items-center gap-1.5 rounded-full bg-primary/20 px-4 py-2 text-sm font-bold">
                 <Trophy className="h-4 w-4 text-primary" />
-                #{mockRank} র‍্যাংক
+                #{realRank} র‍্যাংক
               </div>
             )}
           </motion.div>
@@ -366,7 +401,7 @@ export default function ExamResult() {
                 </div>
                 <div className="rounded-xl bg-card border border-border/50 p-3 text-center">
                   <Trophy className="h-5 w-5 text-primary mx-auto mb-1" />
-                  <p className="text-xl font-bold text-foreground">{mockRank ? `#${mockRank}` : "—"}</p>
+                  <p className="text-xl font-bold text-foreground">{realRank ? `#${realRank}` : "—"}</p>
                   <p className="text-[10px] text-muted-foreground">লিডারবোর্ড র‍্যাংক</p>
                 </div>
               </div>
@@ -457,6 +492,18 @@ export default function ExamResult() {
               })}
             </div>
           </details>
+        </motion.div>
+
+        {/* ─── PDF Download ─── */}
+        <motion.div variants={item}>
+          <Button
+            variant="outline"
+            className="w-full min-h-[52px] gap-2 border-primary/30 text-primary hover:bg-primary/10"
+            onClick={handleDownloadPDF}
+          >
+            <Download className="h-4 w-4" />
+            📥 রেজাল্ট ডাউনলোড (PDF)
+          </Button>
         </motion.div>
 
         {/* ─── Action Buttons ─── */}
