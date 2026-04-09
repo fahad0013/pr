@@ -54,6 +54,14 @@ const slideVariants = {
   exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
 };
 
+// Map Bengali subject names to their English DB equivalents
+const subjectVariantsMap: Record<string, string[]> = {
+  "বাংলা": ["বাংলা", "Bangla"],
+  "ইংরেজি": ["ইংরেজি", "English"],
+  "গণিত": ["গণিত", "Math"],
+  "সাধারণ জ্ঞান": ["সাধারণ জ্ঞান", "GK"],
+};
+
 export default function ExamRoom() {
   const navigate = useNavigate();
   const { examId } = useParams();
@@ -62,7 +70,9 @@ export default function ExamRoom() {
   const isRevision = searchParams.get("mode") === "revision";
   const revisionSubject = searchParams.get("subject");
   const subjectFilter = searchParams.get("subject");
-  const isSubjectMode = !isRevision && !!subjectFilter;
+  const setNumber = searchParams.get("set") ? Number(searchParams.get("set")) : null;
+  const isSetMode = examId === "subject" && !!subjectFilter && !!setNumber;
+  const isSubjectMode = !isRevision && !isSetMode && !!subjectFilter;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
