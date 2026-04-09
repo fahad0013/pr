@@ -68,7 +68,9 @@ export default function ExamRoom() {
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<AnswerState[]>([]);
-  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION);
+  const [examDuration, setExamDuration] = useState(DEFAULT_EXAM_DURATION);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_EXAM_DURATION);
+  const [testTitle, setTestTitle] = useState("পরীক্ষা");
   const [dir, setDir] = useState(1);
   const [showNav, setShowNav] = useState(false);
   const [showExit, setShowExit] = useState(false);
