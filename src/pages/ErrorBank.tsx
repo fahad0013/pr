@@ -118,7 +118,7 @@ export default function ErrorBank() {
           <p className="text-sm text-muted-foreground max-w-xs">
             পরীক্ষা দিন — ভুল উত্তরগুলো এখানে স্বয়ংক্রিয়ভাবে জমা হবে।
           </p>
-          <Button onClick={() => navigate("/live-exam")} className="min-h-[44px]">
+          <Button onClick={() => navigate("/dashboard/live-exam")} className="min-h-[44px]">
             পরীক্ষা দিন
           </Button>
         </div>

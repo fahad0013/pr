@@ -5,12 +5,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { Layout } from "@/components/Layout";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
-import { StreakLevelUp } from "@/components/StreakLevelUp";
 import { supabase } from "@/integrations/supabase/client";
 import Landing from "./pages/Landing";
-// Index removed — dashboard merged into Profile
+import Dashboard from "./pages/Dashboard";
 import Subjects from "./pages/Subjects";
 import LiveExam from "./pages/LiveExam";
 import Leaderboard from "./pages/Leaderboard";
@@ -58,13 +58,15 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AppLayout() {
+function DashboardAppLayout() {
   return (
-    <OnboardingGate>
-      <Layout>
-        <Outlet />
-      </Layout>
-    </OnboardingGate>
+    <ProtectedRoute>
+      <OnboardingGate>
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      </OnboardingGate>
+    </ProtectedRoute>
   );
 }
 
@@ -76,17 +78,24 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public */}
             <Route path="/" element={<Landing />} />
+
+            {/* Exam routes (full screen, no layout) */}
             <Route path="/exam/:examId" element={<ExamRoom />} />
             <Route path="/exam-result" element={<ExamResult />} />
-            <Route element={<AppLayout />}>
-              <Route path="/subjects" element={<Subjects />} />
-              <Route path="/live-exam" element={<LiveExam />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/error-bank" element={<ErrorBank />} />
-              <Route path="*" element={<NotFound />} />
+
+            {/* Protected Dashboard */}
+            <Route path="/dashboard" element={<DashboardAppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="subjects" element={<Subjects />} />
+              <Route path="live-exam" element={<LiveExam />} />
+              <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="error-bank" element={<ErrorBank />} />
             </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

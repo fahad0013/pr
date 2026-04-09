@@ -471,14 +471,14 @@ export default function ExamResult() {
           </Button>
           <Button
             className="min-h-[52px] gap-2"
-            onClick={() => navigate("/live-exam")}
+            onClick={() => navigate("/dashboard/live-exam")}
           >
             <RotateCcw className="h-4 w-4" />
             আরও পরীক্ষা
           </Button>
         </motion.div>
         <motion.div variants={item}>
-          <Link to="/leaderboard">
+          <Link to="/dashboard/leaderboard">
             <Button variant="ghost" className="w-full gap-2 text-primary">
               লিডারবোর্ড দেখুন
               <ArrowRight className="h-4 w-4" />
