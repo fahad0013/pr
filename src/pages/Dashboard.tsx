@@ -232,7 +232,7 @@ export default function Dashboard() {
         profile?.avatar_url || user.user_metadata?.avatar_url || null,
       streak: profile?.current_streak || 0,
       dailyGoal: profile?.daily_goal_minutes || 60,
-      dailyDone: Math.min(totalTests * 15, profile?.daily_goal_minutes || 60), // estimate
+      dailyDone: (dailyRes.data as any)?.minutes_spent || 0,
       totalTests,
       accuracy,
       totalScore: Math.round(totalScoreSum),
