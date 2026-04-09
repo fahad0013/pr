@@ -16,11 +16,19 @@ interface SeedLog {
   message: string;
 }
 
+interface ParsedFile {
+  file: File;
+  questions: any[];
+  categoryBreakdown: Record<string, number>;
+  missingCategory: boolean;
+}
+
 export default function Seed() {
   const { user } = useAuth();
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [parsedFiles, setParsedFiles] = useState<ParsedFile[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [seeding, setSeeding] = useState(false);
