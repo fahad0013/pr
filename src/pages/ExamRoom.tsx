@@ -206,15 +206,7 @@ export default function ExamRoom() {
 
     if (user) {
       // Save mistakes (wrong answers) to DB
-      const mistakeInserts: Array<{
-        user_id: string;
-        question_id: string;
-        test_id: string;
-        subject: string;
-        question_text: string;
-        correct_answer: string;
-        user_answer: string;
-      }> = [];
+      const mistakeInserts: any[] = [];
 
       // For revision mode: delete correctly answered mistakes
       const correctQuestionIds: string[] = [];
@@ -223,17 +215,15 @@ export default function ExamRoom() {
         const a = answers[i];
         if (a.selected !== null) {
           if (a.selected === q.correctIndex) {
-            // Correct answer — if revision, remove from mistakes
             if (isRevision) {
               correctQuestionIds.push(q.id);
             }
           } else {
-            // Wrong answer — save as mistake (only for non-revision to avoid duplicates)
             if (!isRevision) {
               mistakeInserts.push({
                 user_id: user.id,
-                question_id: q.id,
-                test_id: examId || "primary-mock-01",
+                question_id: Number(q.id),
+                test_id: Number(examId) || 1,
                 subject: q.subject,
                 question_text: q.text,
                 correct_answer: q.options[q.correctIndex],
@@ -246,7 +236,7 @@ export default function ExamRoom() {
 
       // Insert new mistakes
       if (mistakeInserts.length > 0) {
-        await supabase.from("mistakes").insert(mistakeInserts);
+        await supabase.from("mistakes").insert(mistakeInserts as any);
       }
 
       // Delete corrected mistakes in revision mode
