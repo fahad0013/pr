@@ -120,12 +120,18 @@ export default function ExamRoom() {
         setTimeLeft(Math.max(qs.length * 60, 5 * 60)); // 1 min per question, min 5 min
       }
     } else {
-      // Normal exam: load by test_id
+      // Normal exam: load by test_id, optionally filter by subject
       const testId = examId || "primary-mock-01";
-      const { data } = await supabase
+      let query = supabase
         .from("questions")
         .select("*")
         .eq("test_id", testId);
+
+      if (subjectFilter) {
+        query = query.eq("subject", subjectFilter);
+      }
+
+      const { data } = await query;
 
       if (data && data.length > 0) {
         const qs: Question[] = data.map((q) => ({
@@ -137,6 +143,10 @@ export default function ExamRoom() {
         }));
         setQuestions(qs);
         setAnswers(qs.map(() => ({ selected: null, marked: false })));
+        // Set time: 1 min per question for subject mode, default for full exam
+        if (isSubjectMode) {
+          setTimeLeft(Math.max(qs.length * 60, 5 * 60));
+        }
       }
     }
     setLoading(false);
