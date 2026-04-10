@@ -1,19 +1,22 @@
 
 
-## Plan: Configure GitHub Pages Deployment
+## Plan: Fix blank page caused by base path
 
-**GitHub**: `fahad0013/prostuti-progress-hub`
+The `base: '/prostuti-progress-hub/'` was added for GitHub Pages deployment, but it breaks the Lovable dev preview because assets get loaded from the wrong path.
 
-### Changes
+### Fix
 
-**1. `package.json`**
-- Add `"homepage": "https://fahad0013.github.io/prostuti-progress-hub"`
-- Add `"gh-pages"` to `devDependencies`
-- Update scripts:
-  - `"build": "vite build && cp dist/index.html dist/404.html"`
-  - `"predeploy": "npm run build"`
-  - `"deploy": "gh-pages -d dist"`
+**File: `vite.config.ts`**
 
-**2. `vite.config.ts`**
-- Add `base: '/prostuti-progress-hub/'` to the config object
+Make `base` conditional — only apply the subpath in production builds:
+
+```ts
+base: mode === 'production' ? '/prostuti-progress-hub/' : '/',
+```
+
+This way:
+- **Development (Lovable preview)**: base is `/` — works correctly
+- **Production build (`npm run build`)**: base is `/prostuti-progress-hub/` — works on GitHub Pages
+
+One line change, one file.
 
