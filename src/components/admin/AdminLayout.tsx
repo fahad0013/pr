@@ -82,10 +82,7 @@ export function AdminLayout() {
       <div className="min-h-screen flex w-full bg-background">
         <AdminSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b border-border px-4 gap-3">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
-          </header>
+          <AdminHeader />
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
           </main>
