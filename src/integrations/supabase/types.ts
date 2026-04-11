@@ -89,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_bans: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       mistakes: {
         Row: {
           correct_answer: string | null
@@ -146,6 +170,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
