@@ -6,6 +6,7 @@ import {
   FileText,
   HelpCircle,
   BarChart3,
+  Database,
   Trophy,
   Bell,
   Settings,
