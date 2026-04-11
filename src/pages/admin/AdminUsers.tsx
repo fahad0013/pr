@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
@@ -18,23 +18,12 @@ interface Profile {
   current_streak: number | null;
 }
 
-interface Result {
-  id: number;
-  total_score: number | null;
-  correct_count: number | null;
-  wrong_count: number | null;
-  created_at: string | null;
-  test_id: number | null;
-}
-
 export default function AdminUsers() {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [districtFilter, setDistrictFilter] = useState("");
   const [institutionFilter, setInstitutionFilter] = useState("");
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [userResults, setUserResults] = useState<Result[]>([]);
-  const [resultsLoading, setResultsLoading] = useState(false);
 
   useEffect(() => {
     supabase
@@ -52,19 +41,6 @@ export default function AdminUsers() {
       (!districtFilter || (p.district ?? "").toLowerCase().includes(districtFilter.toLowerCase())) &&
       (!institutionFilter || (p.institution ?? "").toLowerCase().includes(institutionFilter.toLowerCase()))
   );
-
-  const viewPerformance = async (profile: Profile) => {
-    setSelectedUser(profile);
-    setResultsLoading(true);
-    const { data, error } = await supabase
-      .from("results")
-      .select("id, total_score, correct_count, wrong_count, created_at, test_id")
-      .eq("user_id", profile.id)
-      .order("created_at", { ascending: false });
-    if (error) toast.error("ফলাফল লোড ব্যর্থ");
-    setUserResults(data ?? []);
-    setResultsLoading(false);
-  };
 
   return (
     <div className="space-y-4">
@@ -117,8 +93,8 @@ export default function AdminUsers() {
                 <TableCell>{p.institution ?? "—"}</TableCell>
                 <TableCell>{p.current_streak ?? 0}</TableCell>
                 <TableCell>
-                  <Button size="sm" variant="outline" onClick={() => viewPerformance(p)}>
-                    <Eye className="h-4 w-4 mr-1" /> পারফরম্যান্স
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/admin/users/${p.id}`)}>
+                    <Eye className="h-4 w-4 mr-1" /> বিস্তারিত
                   </Button>
                 </TableCell>
               </TableRow>
@@ -126,42 +102,6 @@ export default function AdminUsers() {
           </TableBody>
         </Table>
       )}
-
-      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedUser?.display_name ?? "User"} — পারফরম্যান্স</DialogTitle>
-          </DialogHeader>
-          {resultsLoading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : userResults.length === 0 ? (
-            <p className="text-muted-foreground">কোনো ফলাফল পাওয়া যায়নি।</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Test ID</TableHead>
-                  <TableHead>স্কোর</TableHead>
-                  <TableHead>সঠিক</TableHead>
-                  <TableHead>ভুল</TableHead>
-                  <TableHead>তারিখ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userResults.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{r.test_id}</TableCell>
-                    <TableCell>{r.total_score ?? "—"}</TableCell>
-                    <TableCell>{r.correct_count ?? 0}</TableCell>
-                    <TableCell>{r.wrong_count ?? 0}</TableCell>
-                    <TableCell>{r.created_at ? new Date(r.created_at).toLocaleDateString("bn-BD") : "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
