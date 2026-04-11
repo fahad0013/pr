@@ -12,6 +12,7 @@ import {
   Settings,
   Sun,
   Moon,
+  Menu,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
   { title: "ড্যাশবোর্ড", url: "/admin", icon: LayoutDashboard },
@@ -42,12 +44,13 @@ const navItems = [
 ];
 
 function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible={isMobile ? "offcanvas" : "icon"} className="border-r border-border">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-primary font-bold text-base">
@@ -63,6 +66,7 @@ function AdminSidebar() {
                       end={item.url === "/admin"}
                       className="hover:bg-muted/50"
                       activeClassName="bg-primary/10 text-primary font-medium"
+                      onClick={() => isMobile && setOpenMobile(false)}
                     >
                       <item.icon className="mr-2 h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
@@ -81,9 +85,9 @@ function AdminSidebar() {
 function AdminHeader() {
   const { theme, toggleTheme } = useTheme();
   return (
-    <header className="h-14 flex items-center border-b border-border px-4 gap-3">
+    <header className="h-14 flex items-center border-b border-border px-4 gap-3 sticky top-0 z-30 bg-background">
       <SidebarTrigger />
-      <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
+      <h1 className="text-base md:text-lg font-semibold text-foreground truncate">Admin Panel</h1>
       <div className="ml-auto">
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -98,9 +102,9 @@ export function AdminLayout() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AdminSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <AdminHeader />
-          <main className="flex-1 p-4 md:p-6 overflow-auto">
+          <main className="flex-1 p-3 md:p-6 overflow-auto">
             <Outlet />
           </main>
         </div>

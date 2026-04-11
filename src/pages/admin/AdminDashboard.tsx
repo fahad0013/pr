@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Users, BookOpen, TrendingUp, Award, Radio } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Metrics {
   totalUsers: number;
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
   const [liveUsers, setLiveUsers] = useState<LiveExamUser[]>([]);
   const [liveLoading, setLiveLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   const fetchLiveExamUsers = useCallback(async () => {
     const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
@@ -153,21 +155,21 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">ড্যাশবোর্ড</h2>
+    <div className="space-y-4 md:space-y-6">
+      <h2 className="text-xl md:text-2xl font-bold text-foreground">ড্যাশবোর্ড</h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {cards.map((c) => (
           <Card key={c.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{c.label}</CardTitle>
-              <c.icon className="h-4 w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between pb-1 md:pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground leading-tight">{c.label}</CardTitle>
+              <c.icon className="h-4 w-4 text-primary shrink-0" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
               {loading ? (
-                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-7 w-16" />
               ) : (
-                <p className="text-2xl font-bold">{c.value}</p>
+                <p className="text-xl md:text-2xl font-bold">{c.value}</p>
               )}
             </CardContent>
           </Card>
@@ -175,28 +177,29 @@ export default function AdminDashboard() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>গত ১৪ দিনের কার্যকলাপ</CardTitle>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-sm md:text-base">গত ১৪ দিনের কার্যকলাপ</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 md:p-6 pt-0">
           {loading ? (
-            <Skeleton className="h-[300px] w-full" />
+            <Skeleton className="h-[200px] md:h-[300px] w-full" />
           ) : (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={isMobile ? 10 : 12} tick={{ dy: 5 }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={isMobile ? 10 : 12} width={isMobile ? 30 : 40} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
+                    fontSize: isMobile ? 12 : 14,
                   }}
                 />
-                <Legend />
-                <Line type="monotone" dataKey="activeUsers" name="সক্রিয় ব্যবহারকারী" stroke="hsl(var(--primary))" strokeWidth={2} />
-                <Line type="monotone" dataKey="testsTaken" name="পরীক্ষা" stroke="hsl(var(--accent))" strokeWidth={2} />
+                {!isMobile && <Legend />}
+                <Line type="monotone" dataKey="activeUsers" name="সক্রিয় ব্যবহারকারী" stroke="hsl(var(--primary))" strokeWidth={2} dot={!isMobile} />
+                <Line type="monotone" dataKey="testsTaken" name="পরীক্ষা" stroke="hsl(var(--accent))" strokeWidth={2} dot={!isMobile} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -205,20 +208,20 @@ export default function AdminDashboard() {
 
       {/* Live Exam Takers */}
       <Card>
-        <CardHeader className="flex flex-row items-center gap-3">
+        <CardHeader className="flex flex-row items-center gap-3 p-3 md:p-6">
           <div className="relative">
             <Radio className="h-5 w-5 text-emerald-500" />
             <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
             <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500" />
           </div>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-base">
             লাইভ পরীক্ষার্থী
             <Badge variant="outline" className="border-emerald-500 text-emerald-500 text-xs">
               Live {liveUsers.length > 0 && `• ${liveUsers.length}`}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
           {liveLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
@@ -230,37 +233,58 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : liveUsers.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">এখন কেউ পরীক্ষা দিচ্ছে না</p>
+            <p className="text-muted-foreground text-center py-6 text-sm">এখন কেউ পরীক্ষা দিচ্ছে না</p>
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {liveUsers.map(u => (
+                <div key={u.userId} className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={u.avatarUrl || undefined} />
+                      <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 border-2 border-background" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{u.displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{u.testTitle}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0">{relativeTime(u.createdAt)}</span>
+                </div>
+              ))}
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>পরীক্ষার্থী</TableHead>
-                  <TableHead>পরীক্ষা</TableHead>
-                  <TableHead className="text-right">সময়</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {liveUsers.map(u => (
-                  <TableRow key={u.userId}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={u.avatarUrl || undefined} />
-                            <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
-                        </div>
-                        <span className="font-medium">{u.displayName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{u.testTitle}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{relativeTime(u.createdAt)}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>পরীক্ষার্থী</TableHead>
+                    <TableHead>পরীক্ষা</TableHead>
+                    <TableHead className="text-right">সময়</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {liveUsers.map(u => (
+                    <TableRow key={u.userId}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={u.avatarUrl || undefined} />
+                              <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+                          </div>
+                          <span className="font-medium">{u.displayName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{u.testTitle}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{relativeTime(u.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
