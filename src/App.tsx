@@ -9,6 +9,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminRoute } from "@/components/AdminRoute";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Subjects from "./pages/Subjects";
@@ -21,6 +23,14 @@ import ExamResult from "./pages/ExamResult";
 import ErrorBank from "./pages/ErrorBank";
 import NotFound from "./pages/NotFound";
 import Seed from "./pages/Seed";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminTests from "./pages/admin/AdminTests";
+import AdminQuestions from "./pages/admin/AdminQuestions";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminLeaderboard from "./pages/admin/AdminLeaderboard";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
