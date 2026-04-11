@@ -6,6 +6,7 @@ import {
   FileText,
   HelpCircle,
   BarChart3,
+  Database,
   Trophy,
   Bell,
   Settings,
@@ -37,6 +38,7 @@ const navItems = [
   { title: "লিডারবোর্ড", url: "/admin/leaderboard", icon: Trophy },
   { title: "নোটিফিকেশন", url: "/admin/notifications", icon: Bell },
   { title: "সেটিংস", url: "/admin/settings", icon: Settings },
+  { title: "সিড ডেটা", url: "/seed", icon: Database },
 ];
 
 function AdminSidebar() {
