@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, BookOpen, TrendingUp, Award } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Users, BookOpen, TrendingUp, Award, Activity } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface Metrics {
@@ -18,13 +20,24 @@ interface DailyPoint {
   testsTaken: number;
 }
 
+interface ActiveUser {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  lastTestTitle: string | null;
+  lastTestTime: string | null;
+}
+
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [chartData, setChartData] = useState<DailyPoint[]>([]);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
+      const today = new Date().toISOString().slice(0, 10);
+
       const [profilesRes, resultsRes, dailyRes] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("results").select("total_score"),
@@ -35,7 +48,6 @@ export default function AdminDashboard() {
       const results = resultsRes.data ?? [];
       const daily = dailyRes.data ?? [];
 
-      const today = new Date().toISOString().slice(0, 10);
       const activeToday = new Set(daily.filter(d => d.activity_date === today).map(d => d.user_id)).size;
       const totalTestsTaken = results.length;
       const avgScore = results.length
@@ -65,6 +77,49 @@ export default function AdminDashboard() {
           testsTaken: v.testsTaken,
         }))
       );
+
+      // Fetch active users for today with their latest exam
+      const todayUserIds = [...new Set(daily.filter(d => d.activity_date === today).map(d => d.user_id))];
+
+      if (todayUserIds.length > 0) {
+        const [profilesData, resultsData] = await Promise.all([
+          supabase.from("profiles").select("id, display_name, avatar_url").in("id", todayUserIds),
+          supabase.from("results").select("user_id, test_id, created_at").in("user_id", todayUserIds).order("created_at", { ascending: false }),
+        ]);
+
+        const profiles = profilesData.data ?? [];
+        const userResults = resultsData.data ?? [];
+
+        // Get unique test IDs for the latest results
+        const latestResultByUser: Record<string, { test_id: number | null; created_at: string | null }> = {};
+        userResults.forEach(r => {
+          if (!latestResultByUser[r.user_id!]) {
+            latestResultByUser[r.user_id!] = { test_id: r.test_id, created_at: r.created_at };
+          }
+        });
+
+        const testIds = [...new Set(Object.values(latestResultByUser).map(r => r.test_id).filter(Boolean))] as number[];
+        let testsMap: Record<number, string> = {};
+        if (testIds.length > 0) {
+          const testsData = await supabase.from("tests").select("id, title").in("id", testIds);
+          (testsData.data ?? []).forEach(t => { testsMap[t.id] = t.title; });
+        }
+
+        const activeList: ActiveUser[] = profiles.map(p => {
+          const latest = latestResultByUser[p.id];
+          return {
+            userId: p.id,
+            displayName: p.display_name || "Unknown",
+            avatarUrl: p.avatar_url,
+            lastTestTitle: latest?.test_id ? (testsMap[latest.test_id] || null) : null,
+            lastTestTime: latest?.created_at || null,
+          };
+        });
+        setActiveUsers(activeList);
+      } else {
+        setActiveUsers([]);
+      }
+
       setLoading(false);
     }
     load();
@@ -76,6 +131,12 @@ export default function AdminDashboard() {
     { label: "মোট পরীক্ষা দেওয়া", value: metrics?.totalTestsTaken, icon: BookOpen },
     { label: "গড় স্কোর", value: metrics ? `${metrics.avgScore}%` : undefined, icon: Award },
   ];
+
+  function formatTime(iso: string | null) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" });
+  }
 
   return (
     <div className="space-y-6">
@@ -124,6 +185,56 @@ export default function AdminDashboard() {
                 <Line type="monotone" dataKey="testsTaken" name="পরীক্ষা" stroke="hsl(var(--accent))" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Active Users & Current Exams */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Activity className="h-5 w-5 text-primary" />
+          <CardTitle>সক্রিয় ব্যবহারকারী ও পরীক্ষা</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24 ml-auto" />
+                </div>
+              ))}
+            </div>
+          ) : activeUsers.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">আজ কেউ সক্রিয় নেই</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ব্যবহারকারী</TableHead>
+                  <TableHead>সর্বশেষ পরীক্ষা</TableHead>
+                  <TableHead className="text-right">সময়</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeUsers.map(u => (
+                  <TableRow key={u.userId}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={u.avatarUrl || undefined} />
+                          <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{u.displayName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{u.lastTestTitle || "—"}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{formatTime(u.lastTestTime)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
