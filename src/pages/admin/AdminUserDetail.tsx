@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Profile {
   id: string;
@@ -54,6 +55,7 @@ interface BadgeRow {
 export default function AdminUserDetail() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [dailyActivity, setDailyActivity] = useState<DailyActivity[]>([]);
@@ -85,6 +87,9 @@ export default function AdminUserDetail() {
     });
   }, [userId]);
 
+  const chartHeight = isMobile ? 200 : 250;
+  const chartFontSize = isMobile ? 10 : 11;
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -101,13 +106,11 @@ export default function AdminUserDetail() {
     return <p className="text-muted-foreground">ব্যবহারকারী পাওয়া যায়নি।</p>;
   }
 
-  // Score over time data
   const scoreData = results.map((r) => ({
     date: r.created_at ? new Date(r.created_at).toLocaleDateString("bn-BD", { day: "numeric", month: "short" }) : "",
     score: r.total_score ?? 0,
   }));
 
-  // Accuracy trend data
   const accuracyData = results.map((r) => {
     const total = (r.correct_count ?? 0) + (r.wrong_count ?? 0);
     return {
@@ -116,14 +119,12 @@ export default function AdminUserDetail() {
     };
   });
 
-  // Daily activity chart data
   const activityData = dailyActivity.slice(-30).map((d) => ({
     date: new Date(d.activity_date).toLocaleDateString("bn-BD", { day: "numeric", month: "short" }),
     tests: d.tests_completed ?? 0,
     minutes: d.minutes_spent ?? 0,
   }));
 
-  // Daily performance table - aggregate results by date
   const dailyPerf: Record<string, { tests: number; totalScore: number; totalAcc: number; totalTime: number }> = {};
   results.forEach((r) => {
     const dateKey = r.created_at ? new Date(r.created_at).toLocaleDateString("bn-BD") : "unknown";
@@ -142,7 +143,6 @@ export default function AdminUserDetail() {
     totalTime: Math.round(d.totalTime / 60),
   }));
 
-  // Subject-wise performance
   const subjectAgg: Record<string, { correct: number; total: number }> = {};
   results.forEach((r) => {
     if (r.subject_scores && typeof r.subject_scores === "object") {
@@ -159,7 +159,6 @@ export default function AdminUserDetail() {
     total: d.total,
   }));
 
-  // Mistake insights - by subject
   const mistakeSubjects: Record<string, number> = {};
   mistakes.forEach((m) => {
     const s = m.subject ?? "অজানা";
@@ -170,7 +169,6 @@ export default function AdminUserDetail() {
     .slice(0, 10)
     .map(([subject, count]) => ({ subject, count }));
 
-  // Frequently wrong questions
   const questionCount: Record<string, { text: string; count: number }> = {};
   mistakes.forEach((m) => {
     const key = String(m.question_id ?? m.id);
@@ -184,29 +182,28 @@ export default function AdminUserDetail() {
   const badgeColors: Record<string, string> = { gold: "bg-yellow-500", silver: "bg-gray-400", bronze: "bg-amber-700" };
 
   return (
-    <div className="space-y-6">
-      {/* Back button */}
+    <div className="space-y-4 md:space-y-6">
       <Button variant="ghost" size="sm" onClick={() => navigate("/admin/users")}>
         <ArrowLeft className="h-4 w-4 mr-1" /> ফিরে যান
       </Button>
 
       {/* Header */}
       <Card>
-        <CardContent className="flex items-center gap-4 p-6">
-          <Avatar className="h-16 w-16">
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 md:p-6">
+          <Avatar className="h-14 w-14 md:h-16 md:w-16 shrink-0">
             <AvatarImage src={profile.avatar_url ?? ""} />
             <AvatarFallback className="text-xl">{(profile.display_name ?? "?")[0]}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold">{profile.display_name ?? "নাম নেই"}</h2>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl md:text-2xl font-bold truncate">{profile.display_name ?? "নাম নেই"}</h2>
             <p className="text-muted-foreground text-sm">
               {profile.district ?? "—"} • {profile.institution ?? "—"}
             </p>
             <div className="flex gap-2 mt-2 flex-wrap">
-              <Badge variant="outline" className="gap-1"><Flame className="h-3 w-3" /> স্ট্রিক: {profile.current_streak ?? 0}</Badge>
-              <Badge variant="outline" className="gap-1"><BookOpen className="h-3 w-3" /> পরীক্ষা: {results.length}</Badge>
+              <Badge variant="outline" className="gap-1 text-xs"><Flame className="h-3 w-3" /> স্ট্রিক: {profile.current_streak ?? 0}</Badge>
+              <Badge variant="outline" className="gap-1 text-xs"><BookOpen className="h-3 w-3" /> পরীক্ষা: {results.length}</Badge>
               {badges.map((b) => (
-                <Badge key={b.badge_type} className={`${badgeColors[b.badge_type] ?? "bg-primary"} text-white gap-1`}>
+                <Badge key={b.badge_type} className={`${badgeColors[b.badge_type] ?? "bg-primary"} text-white gap-1 text-xs`}>
                   <Trophy className="h-3 w-3" /> {b.badge_type}
                 </Badge>
               ))}
@@ -217,54 +214,51 @@ export default function AdminUserDetail() {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Score Over Time */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> স্কোর ট্রেন্ড</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><Target className="h-4 w-4" /> স্কোর ট্রেন্ড</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {scoreData.length === 0 ? <p className="text-muted-foreground text-sm">ডেটা নেই</p> : (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <LineChart data={scoreData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" fontSize={11} />
-                  <YAxis fontSize={11} />
+                  <XAxis dataKey="date" fontSize={chartFontSize} />
+                  <YAxis fontSize={chartFontSize} width={isMobile ? 30 : 40} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="স্কোর" />
+                  <Line type="monotone" dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} dot={!isMobile && { r: 3 }} name="স্কোর" />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
-        {/* Accuracy Trend */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> নির্ভুলতা ট্রেন্ড (%)</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><Target className="h-4 w-4" /> নির্ভুলতা ট্রেন্ড (%)</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {accuracyData.length === 0 ? <p className="text-muted-foreground text-sm">ডেটা নেই</p> : (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <LineChart data={accuracyData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" fontSize={11} />
-                  <YAxis domain={[0, 100]} fontSize={11} />
+                  <XAxis dataKey="date" fontSize={chartFontSize} />
+                  <YAxis domain={[0, 100]} fontSize={chartFontSize} width={isMobile ? 30 : 40} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="accuracy" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 3 }} name="নির্ভুলতা %" />
+                  <Line type="monotone" dataKey="accuracy" stroke="hsl(var(--accent))" strokeWidth={2} dot={!isMobile && { r: 3 }} name="নির্ভুলতা %" />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
-        {/* Daily Activity */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> দৈনিক কার্যকলাপ</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><Clock className="h-4 w-4" /> দৈনিক কার্যকলাপ</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {activityData.length === 0 ? <p className="text-muted-foreground text-sm">ডেটা নেই</p> : (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={activityData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" fontSize={11} />
-                  <YAxis fontSize={11} />
+                  <XAxis dataKey="date" fontSize={chartFontSize} />
+                  <YAxis fontSize={chartFontSize} width={isMobile ? 30 : 40} />
                   <Tooltip />
-                  <Legend />
+                  {!isMobile && <Legend />}
                   <Bar dataKey="tests" fill="hsl(var(--primary))" name="পরীক্ষা" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="minutes" fill="hsl(var(--secondary))" name="মিনিট" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -273,16 +267,15 @@ export default function AdminUserDetail() {
           </CardContent>
         </Card>
 
-        {/* Subject-wise Performance */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><BookOpen className="h-4 w-4" /> বিষয়ভিত্তিক পারফরম্যান্স</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><BookOpen className="h-4 w-4" /> বিষয়ভিত্তিক পারফরম্যান্স</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {subjectData.length === 0 ? <p className="text-muted-foreground text-sm">ডেটা নেই</p> : (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={subjectData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" domain={[0, 100]} fontSize={11} />
-                  <YAxis dataKey="subject" type="category" width={100} fontSize={11} />
+                  <XAxis type="number" domain={[0, 100]} fontSize={chartFontSize} />
+                  <YAxis dataKey="subject" type="category" width={isMobile ? 70 : 100} fontSize={chartFontSize} />
                   <Tooltip />
                   <Bar dataKey="accuracy" fill="hsl(var(--primary))" name="নির্ভুলতা %" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -294,47 +287,48 @@ export default function AdminUserDetail() {
 
       {/* Daily Performance Table */}
       <Card>
-        <CardHeader><CardTitle className="text-base">দৈনিক পারফরম্যান্স সারণি</CardTitle></CardHeader>
-        <CardContent>
+        <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base">দৈনিক পারফরম্যান্স সারণি</CardTitle></CardHeader>
+        <CardContent className="p-2 md:p-6 pt-0">
           {dailyPerfRows.length === 0 ? <p className="text-muted-foreground text-sm">কোনো ডেটা নেই</p> : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>তারিখ</TableHead>
-                  <TableHead>পরীক্ষা সংখ্যা</TableHead>
-                  <TableHead>গড় স্কোর</TableHead>
-                  <TableHead>গড় নির্ভুলতা %</TableHead>
-                  <TableHead>মোট সময় (মিনিট)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dailyPerfRows.map((row) => (
-                  <TableRow key={row.date}>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.tests}</TableCell>
-                    <TableCell>{row.avgScore}</TableCell>
-                    <TableCell>{row.avgAccuracy}%</TableCell>
-                    <TableCell>{row.totalTime}</TableCell>
+            <div className="overflow-x-auto -mx-2 md:mx-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">তারিখ</TableHead>
+                    <TableHead className="whitespace-nowrap">পরীক্ষা</TableHead>
+                    <TableHead className="whitespace-nowrap">গড় স্কোর</TableHead>
+                    <TableHead className="whitespace-nowrap">নির্ভুলতা %</TableHead>
+                    <TableHead className="whitespace-nowrap">সময় (মিনিট)</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {dailyPerfRows.map((row) => (
+                    <TableRow key={row.date}>
+                      <TableCell className="whitespace-nowrap">{row.date}</TableCell>
+                      <TableCell>{row.tests}</TableCell>
+                      <TableCell>{row.avgScore}</TableCell>
+                      <TableCell>{row.avgAccuracy}%</TableCell>
+                      <TableCell>{row.totalTime}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Mistake Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Most Incorrect Subjects */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> সবচেয়ে বেশি ভুল বিষয়</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> সবচেয়ে বেশি ভুল বিষয়</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {mistakeSubjectData.length === 0 ? <p className="text-muted-foreground text-sm">কোনো ভুল নেই</p> : (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={mistakeSubjectData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="subject" fontSize={11} />
-                  <YAxis fontSize={11} />
+                  <XAxis dataKey="subject" fontSize={chartFontSize} />
+                  <YAxis fontSize={chartFontSize} width={isMobile ? 30 : 40} />
                   <Tooltip />
                   <Bar dataKey="count" fill="hsl(var(--destructive))" name="ভুল সংখ্যা" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -343,16 +337,15 @@ export default function AdminUserDetail() {
           </CardContent>
         </Card>
 
-        {/* Frequently Wrong Questions */}
         <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> বারবার ভুল প্রশ্ন</CardTitle></CardHeader>
-          <CardContent>
+          <CardHeader className="p-3 md:p-6"><CardTitle className="text-sm md:text-base flex items-center gap-2"><AlertTriangle className="h-4 w-4" /> বারবার ভুল প্রশ্ন</CardTitle></CardHeader>
+          <CardContent className="p-2 md:p-6 pt-0">
             {topWrongQuestions.length === 0 ? <p className="text-muted-foreground text-sm">কোনো ভুল নেই</p> : (
               <div className="space-y-2 max-h-[250px] overflow-auto">
                 {topWrongQuestions.map((q, i) => (
                   <div key={i} className="flex justify-between items-start gap-2 p-2 rounded-md bg-muted/50">
-                    <p className="text-sm flex-1 line-clamp-2">{q.text}</p>
-                    <Badge variant="destructive" className="shrink-0">{q.count}x</Badge>
+                    <p className="text-xs md:text-sm flex-1 line-clamp-2">{q.text}</p>
+                    <Badge variant="destructive" className="shrink-0 text-xs">{q.count}x</Badge>
                   </div>
                 ))}
               </div>
