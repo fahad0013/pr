@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, BookOpen, TrendingUp, Award, Activity } from "lucide-react";
+import { Users, BookOpen, TrendingUp, Award, Radio } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Badge } from "@/components/ui/badge";
 
 interface Metrics {
   totalUsers: number;
@@ -20,19 +21,68 @@ interface DailyPoint {
   testsTaken: number;
 }
 
-interface ActiveUser {
+interface LiveExamUser {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
-  lastTestTitle: string | null;
-  lastTestTime: string | null;
+  testTitle: string;
+  createdAt: string;
 }
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [chartData, setChartData] = useState<DailyPoint[]>([]);
-  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
+  const [liveUsers, setLiveUsers] = useState<LiveExamUser[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  const fetchLiveExamUsers = useCallback(async () => {
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+    const { data: recentResults } = await supabase
+      .from("results")
+      .select("user_id, test_id, created_at")
+      .gt("created_at", thirtyMinAgo)
+      .order("created_at", { ascending: false });
+
+    if (!recentResults || recentResults.length === 0) {
+      setLiveUsers([]);
+      setLiveLoading(false);
+      return;
+    }
+
+    const latestByUser: Record<string, { test_id: number | null; created_at: string }> = {};
+    recentResults.forEach(r => {
+      if (r.user_id && !latestByUser[r.user_id]) {
+        latestByUser[r.user_id] = { test_id: r.test_id, created_at: r.created_at! };
+      }
+    });
+
+    const userIds = Object.keys(latestByUser);
+    const testIds = [...new Set(Object.values(latestByUser).map(r => r.test_id).filter(Boolean))] as number[];
+
+    const [profilesRes, testsRes] = await Promise.all([
+      supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds),
+      testIds.length > 0 ? supabase.from("tests").select("id, title").in("id", testIds) : Promise.resolve({ data: [] }),
+    ]);
+
+    const testsMap: Record<number, string> = {};
+    (testsRes.data ?? []).forEach(t => { testsMap[t.id] = t.title; });
+
+    const list: LiveExamUser[] = (profilesRes.data ?? []).map(p => {
+      const latest = latestByUser[p.id];
+      return {
+        userId: p.id,
+        displayName: p.display_name || "Unknown",
+        avatarUrl: p.avatar_url,
+        testTitle: latest?.test_id ? (testsMap[latest.test_id] || "—") : "—",
+        createdAt: latest?.created_at || "",
+      };
+    });
+
+    setLiveUsers(list);
+    setLiveLoading(false);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -56,7 +106,6 @@ export default function AdminDashboard() {
 
       setMetrics({ totalUsers, activeToday, totalTestsTaken, avgScore });
 
-      // Build chart data (last 14 days)
       const days: Record<string, { activeUsers: Set<string>; testsTaken: number }> = {};
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
@@ -78,52 +127,23 @@ export default function AdminDashboard() {
         }))
       );
 
-      // Fetch active users for today with their latest exam
-      const todayUserIds = [...new Set(daily.filter(d => d.activity_date === today).map(d => d.user_id))];
-
-      if (todayUserIds.length > 0) {
-        const [profilesData, resultsData] = await Promise.all([
-          supabase.from("profiles").select("id, display_name, avatar_url").in("id", todayUserIds),
-          supabase.from("results").select("user_id, test_id, created_at").in("user_id", todayUserIds).order("created_at", { ascending: false }),
-        ]);
-
-        const profiles = profilesData.data ?? [];
-        const userResults = resultsData.data ?? [];
-
-        // Get unique test IDs for the latest results
-        const latestResultByUser: Record<string, { test_id: number | null; created_at: string | null }> = {};
-        userResults.forEach(r => {
-          if (!latestResultByUser[r.user_id!]) {
-            latestResultByUser[r.user_id!] = { test_id: r.test_id, created_at: r.created_at };
-          }
-        });
-
-        const testIds = [...new Set(Object.values(latestResultByUser).map(r => r.test_id).filter(Boolean))] as number[];
-        let testsMap: Record<number, string> = {};
-        if (testIds.length > 0) {
-          const testsData = await supabase.from("tests").select("id, title").in("id", testIds);
-          (testsData.data ?? []).forEach(t => { testsMap[t.id] = t.title; });
-        }
-
-        const activeList: ActiveUser[] = profiles.map(p => {
-          const latest = latestResultByUser[p.id];
-          return {
-            userId: p.id,
-            displayName: p.display_name || "Unknown",
-            avatarUrl: p.avatar_url,
-            lastTestTitle: latest?.test_id ? (testsMap[latest.test_id] || null) : null,
-            lastTestTime: latest?.created_at || null,
-          };
-        });
-        setActiveUsers(activeList);
-      } else {
-        setActiveUsers([]);
-      }
-
       setLoading(false);
     }
     load();
-  }, []);
+    fetchLiveExamUsers();
+
+    const interval = setInterval(fetchLiveExamUsers, 30000);
+    return () => clearInterval(interval);
+  }, [fetchLiveExamUsers]);
+
+  function relativeTime(iso: string) {
+    if (!iso) return "—";
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return "এইমাত্র";
+    const mins = Math.floor(diff / 60);
+    if (mins < 60) return `${mins} মিনিট আগে`;
+    return `${Math.floor(mins / 60)} ঘণ্টা আগে`;
+  }
 
   const cards = [
     { label: "মোট ব্যবহারকারী", value: metrics?.totalUsers, icon: Users },
@@ -131,12 +151,6 @@ export default function AdminDashboard() {
     { label: "মোট পরীক্ষা দেওয়া", value: metrics?.totalTestsTaken, icon: BookOpen },
     { label: "গড় স্কোর", value: metrics ? `${metrics.avgScore}%` : undefined, icon: Award },
   ];
-
-  function formatTime(iso: string | null) {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    return d.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" });
-  }
 
   return (
     <div className="space-y-6">
@@ -189,14 +203,23 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Active Users & Current Exams */}
+      {/* Live Exam Takers */}
       <Card>
-        <CardHeader className="flex flex-row items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <CardTitle>সক্রিয় ব্যবহারকারী ও পরীক্ষা</CardTitle>
+        <CardHeader className="flex flex-row items-center gap-3">
+          <div className="relative">
+            <Radio className="h-5 w-5 text-emerald-500" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          </div>
+          <CardTitle className="flex items-center gap-2">
+            লাইভ পরীক্ষার্থী
+            <Badge variant="outline" className="border-emerald-500 text-emerald-500 text-xs">
+              Live {liveUsers.length > 0 && `• ${liveUsers.length}`}
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {liveLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
                 <div key={i} className="flex items-center gap-3">
@@ -206,31 +229,34 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
-          ) : activeUsers.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">আজ কেউ সক্রিয় নেই</p>
+          ) : liveUsers.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">এখন কেউ পরীক্ষা দিচ্ছে না</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ব্যবহারকারী</TableHead>
-                  <TableHead>সর্বশেষ পরীক্ষা</TableHead>
+                  <TableHead>পরীক্ষার্থী</TableHead>
+                  <TableHead>পরীক্ষা</TableHead>
                   <TableHead className="text-right">সময়</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeUsers.map(u => (
+                {liveUsers.map(u => (
                   <TableRow key={u.userId}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={u.avatarUrl || undefined} />
-                          <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={u.avatarUrl || undefined} />
+                            <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+                        </div>
                         <span className="font-medium">{u.displayName}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{u.lastTestTitle || "—"}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{formatTime(u.lastTestTime)}</TableCell>
+                    <TableCell>{u.testTitle}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{relativeTime(u.createdAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
