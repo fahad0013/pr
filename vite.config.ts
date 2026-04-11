@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/prostuti-progress-hub/' : '/',
+  base: mode === 'gh-pages' ? '/prostuti-progress-hub/' : '/',
   server: {
     host: "::",
     port: 8080,

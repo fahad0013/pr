@@ -6,15 +6,16 @@
   "homepage": "https://fahad0013.github.io/prostuti-progress-hub",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/index.html dist/404.html",
+    "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:gh-pages": "vite build --mode gh-pages && cp dist/index.html dist/404.html",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d dist",
     "test": "vitest run",
     "test:watch": "vitest"
-  },
+  }
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
