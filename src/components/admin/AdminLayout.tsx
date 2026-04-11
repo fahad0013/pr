@@ -9,7 +9,11 @@ import {
   Trophy,
   Bell,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
