@@ -9,7 +9,11 @@ import {
   Trophy,
   Bell,
   Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -72,16 +76,28 @@ function AdminSidebar() {
   );
 }
 
+function AdminHeader() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <header className="h-14 flex items-center border-b border-border px-4 gap-3">
+      <SidebarTrigger />
+      <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
+      <div className="ml-auto">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
+    </header>
+  );
+}
+
 export function AdminLayout() {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AdminSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b border-border px-4 gap-3">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
-          </header>
+          <AdminHeader />
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
           </main>
