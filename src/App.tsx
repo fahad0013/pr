@@ -109,6 +109,18 @@ const App = () => (
               <Route path="error-bank" element={<ErrorBank />} />
             </Route>
 
+            {/* Admin Panel */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="tests" element={<AdminTests />} />
+              <Route path="questions" element={<AdminQuestions />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="leaderboard" element={<AdminLeaderboard />} />
+              <Route path="notifications" element={<AdminNotifications />} />
+              <Route path="settings" element={<AdminSettings />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
