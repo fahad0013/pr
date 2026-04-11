@@ -202,6 +202,7 @@ export type Database = {
           onboarding_completed: boolean | null
           role: string | null
           subject_interest: string[] | null
+          xp: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -215,6 +216,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           role?: string | null
           subject_interest?: string[] | null
+          xp?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           role?: string | null
           subject_interest?: string[] | null
+          xp?: number | null
         }
         Relationships: []
       }
