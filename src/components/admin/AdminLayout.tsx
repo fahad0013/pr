@@ -76,6 +76,21 @@ function AdminSidebar() {
   );
 }
 
+function AdminHeader() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <header className="h-14 flex items-center border-b border-border px-4 gap-3">
+      <SidebarTrigger />
+      <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
+      <div className="ml-auto">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
+    </header>
+  );
+}
+
 export function AdminLayout() {
   return (
     <SidebarProvider>
