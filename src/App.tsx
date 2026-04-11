@@ -31,6 +31,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminLeaderboard from "./pages/admin/AdminLeaderboard";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +114,7 @@ const App = () => (
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="users/:userId" element={<AdminUserDetail />} />
               <Route path="tests" element={<AdminTests />} />
               <Route path="questions" element={<AdminQuestions />} />
               <Route path="analytics" element={<AdminAnalytics />} />
