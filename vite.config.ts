@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(async ({ mode }) => {
-  const plugins = [react()];
+  const plugins = [...react()];
 
   if (mode === "development") {
     const { componentTagger } = await import("lovable-tagger");
